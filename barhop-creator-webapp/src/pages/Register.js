@@ -19,6 +19,7 @@ function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+
     if (formData.password !== formData.confirmPassword)
       return setError("Passwords do not match.");
     if (formData.password.length < 8)
@@ -26,13 +27,20 @@ function Register() {
 
     setLoading(true);
     try {
+      console.log("Step 1: Attempting to register with email...");
       const { user } = await registerWithEmail(formData.email, formData.password);
+      console.log("Step 2: Firebase Auth user created:", user.uid);
+
+      console.log("Step 3: Saving user document to Firestore...");
       await createUserDocument(user, {
         firstName: formData.firstName,
         lastName:  formData.lastName,
       });
+      console.log("Step 4: Firestore document saved. Navigating to dashboard...");
+
       navigate("/dashboard");
     } catch (err) {
+      console.error("Registration error:", err.code, err.message);
       setError(friendlyError(err.code));
     } finally {
       setLoading(false);
@@ -43,10 +51,17 @@ function Register() {
     setError("");
     setLoading(true);
     try {
+      console.log("Step 1: Attempting Google sign-in...");
       const { user } = await loginWithGoogle();
+      console.log("Step 2: Google user signed in:", user.uid);
+
+      console.log("Step 3: Saving user document to Firestore...");
       await createUserDocument(user);
+      console.log("Step 4: Firestore document saved. Navigating to dashboard...");
+
       navigate("/dashboard");
     } catch (err) {
+      console.error("Google sign-in error:", err.code, err.message);
       setError(friendlyError(err.code));
     } finally {
       setLoading(false);

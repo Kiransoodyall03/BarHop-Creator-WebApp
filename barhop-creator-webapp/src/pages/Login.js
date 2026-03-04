@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import GoogleButton from "react-google-button";
 import { loginWithEmail, loginWithGoogle } from "../firebase/authService";
+import { createUserDocument } from "../firebase/userService";
 import "../styles/Auth.css";
 
 function Login() {
@@ -21,6 +22,7 @@ function Login() {
       await loginWithEmail(formData.email, formData.password);
       navigate("/dashboard");
     } catch (err) {
+      console.error("Login error:", err.code, err.message);
       setError(friendlyError(err.code));
     } finally {
       setLoading(false);
@@ -31,9 +33,17 @@ function Login() {
     setError("");
     setLoading(true);
     try {
-      await loginWithGoogle();
+      console.log("Step 1: Opening Google sign-in popup...");
+      const result = await loginWithGoogle();
+      console.log("Step 2: Google sign-in successful:", result.user.uid);
+
+      // Create Firestore doc if this is their first Google sign-in
+      await createUserDocument(result.user);
+      console.log("Step 3: User document ensured. Navigating...");
+
       navigate("/dashboard");
     } catch (err) {
+      console.error("Google login error:", err.code, err.message);
       setError(friendlyError(err.code));
     } finally {
       setLoading(false);
@@ -52,12 +62,14 @@ function Login() {
           <div className="form__group">
             <label className="form__label">Email</label>
             <input className="form__input" type="email" name="email"
-              placeholder="jane@example.com" value={formData.email} onChange={handleChange} required />
+              placeholder="jane@example.com" value={formData.email}
+              onChange={handleChange} required />
           </div>
           <div className="form__group">
             <label className="form__label">Password</label>
             <input className="form__input" type="password" name="password"
-              placeholder="Your password" value={formData.password} onChange={handleChange} required />
+              placeholder="Your password" value={formData.password}
+              onChange={handleChange} required />
           </div>
           <button type="submit" className="auth__submit" disabled={loading}>
             {loading ? "Signing in…" : "Sign In"}
@@ -89,6 +101,7 @@ function friendlyError(code) {
     case "auth/invalid-email":        return "Please enter a valid email address.";
     case "auth/too-many-requests":    return "Too many attempts. Please try again later.";
     case "auth/popup-closed-by-user": return "Google sign-in was cancelled.";
+    case "auth/popup-blocked":        return "Popup was blocked. Please allow popups for this site.";
     default:                          return "Something went wrong. Please try again.";
   }
 }
