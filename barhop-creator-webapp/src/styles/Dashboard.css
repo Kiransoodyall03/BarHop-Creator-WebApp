@@ -9,38 +9,6 @@
   flex-direction: column;
 }
 
-/* --- Navbar --- */
-.dashboard__nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem 2.5rem;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.dashboard__logo {
-  font-family: var(--font-display);
-  font-size: 1.8rem;
-  letter-spacing: 0.08em;
-  color: var(--color-accent);
-}
-
-.dashboard__logout {
-  background: transparent;
-  border: 1px solid var(--color-border);
-  color: var(--color-muted);
-  padding: 0.5rem 1.2rem;
-  border-radius: var(--radius);
-  font-size: 0.85rem;
-  transition: all var(--transition);
-}
-
-.dashboard__logout:hover {
-  border-color: var(--color-error);
-  color: var(--color-error);
-}
-
-/* --- Main --- */
 .dashboard__main {
   flex: 1;
   max-width: 680px;
@@ -65,7 +33,7 @@
   margin-bottom: 2.5rem;
 }
 
-/* --- Detail card --- */
+/* Detail card */
 .dashboard__card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -108,7 +76,6 @@
   color: var(--color-muted);
 }
 
-/* Avatar */
 .detail__avatar {
   width: 40px;
   height: 40px;
@@ -117,7 +84,6 @@
   border: 2px solid var(--color-border);
 }
 
-/* Badges */
 .detail__badge {
   font-size: 0.75rem;
   font-weight: 600;

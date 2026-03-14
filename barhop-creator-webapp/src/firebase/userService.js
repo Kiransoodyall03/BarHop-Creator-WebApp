@@ -18,16 +18,20 @@ export const createUserDocument = async (fbUser, extraData = {}) => {
     const lastName  = extraData.lastName  ?? nameParts.slice(1).join(" ") ?? "";
 
     const userData = {
-      uid:           fbUser.uid,
-      email:         fbUser.email,
-      displayName:   fbUser.displayName ?? `${firstName} ${lastName}`.trim(),
-      photoURL:      fbUser.photoURL    ?? null,
-      emailVerified: fbUser.emailVerified,
+      uid:                fbUser.uid,
+      email:              fbUser.email,
+      displayName:        fbUser.displayName ?? `${firstName} ${lastName}`.trim(),
+      photoURL:           fbUser.photoURL    ?? null,
+      emailVerified:      fbUser.emailVerified,
       firstName,
       lastName,
       provider,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
+      // Onboarding state — new fields from types.ts
+      venueId:            null,
+      verified:           false,
+      onboardingComplete: false,
+      createdAt:          serverTimestamp(),
+      updatedAt:          serverTimestamp(),
     };
 
     console.log("userService: writing to Firestore:", userData);
@@ -36,7 +40,7 @@ export const createUserDocument = async (fbUser, extraData = {}) => {
 
   } catch (err) {
     console.error("userService: Firestore write failed:", err.code, err.message);
-    throw err; // re-throw so Register.js catches it too
+    throw err;
   }
 };
 
@@ -52,16 +56,19 @@ export const getUserDocument = async (uid) => {
 
     const data = snapshot.data();
     return {
-      uid:           data.uid,
-      email:         data.email,
-      displayName:   data.displayName,
-      photoURL:      data.photoURL,
-      emailVerified: data.emailVerified,
-      firstName:     data.firstName,
-      lastName:      data.lastName,
-      provider:      data.provider,
-      createdAt:     data.createdAt?.toDate() ?? null,
-      updatedAt:     data.updatedAt?.toDate() ?? null,
+      uid:                data.uid,
+      email:              data.email,
+      displayName:        data.displayName,
+      photoURL:           data.photoURL,
+      emailVerified:      data.emailVerified,
+      firstName:          data.firstName,
+      lastName:           data.lastName,
+      provider:           data.provider,
+      venueId:            data.venueId            ?? null,
+      verified:           data.verified           ?? false,
+      onboardingComplete: data.onboardingComplete ?? false,
+      createdAt:          data.createdAt?.toDate() ?? null,
+      updatedAt:          data.updatedAt?.toDate() ?? null,
     };
   } catch (err) {
     console.error("userService: Firestore read failed:", err.code, err.message);
