@@ -4,47 +4,40 @@ import GoogleButton from "react-google-button";
 import { loginWithEmail, loginWithGoogle } from "../firebase/authService";
 import { createUserDocument } from "../firebase/userService";
 import "../styles/Auth.css";
+import { useError } from "../context/ErrorContext";
 
 function Login() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: "", password: "" });
-  const [error, setError]       = useState("");
-  const [loading, setLoading]   = useState(false);
+  const [loading, setLoading] = useState(false);
+  const { showError, showSuccess } = useError();
 
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
     setLoading(true);
     try {
       await loginWithEmail(formData.email, formData.password);
+      showSuccess("Welcome back!");
       navigate("/dashboard");
     } catch (err) {
-      console.error("Login error:", err.code, err.message);
-      setError(friendlyError(err.code));
+      showError(friendlyError(err.code));
     } finally {
       setLoading(false);
     }
   };
 
   const handleGoogle = async () => {
-    setError("");
     setLoading(true);
     try {
-      console.log("Step 1: Opening Google sign-in popup...");
       const result = await loginWithGoogle();
-      console.log("Step 2: Google sign-in successful:", result.user.uid);
-
-      // Create Firestore doc if this is their first Google sign-in
       await createUserDocument(result.user);
-      console.log("Step 3: User document ensured. Navigating...");
-
+      showSuccess("Successfully signed in with Google!");
       navigate("/dashboard");
     } catch (err) {
-      console.error("Google login error:", err.code, err.message);
-      setError(friendlyError(err.code));
+      showError(friendlyError(err.code));
     } finally {
       setLoading(false);
     }
@@ -56,7 +49,6 @@ function Login() {
         <Link to="/" className="auth__logo">BarHop</Link>
         <h1 className="auth__title">Welcome Back</h1>
         <p className="auth__subtitle">Sign in to your creator account</p>
-        {error && <div className="auth__error">{error}</div>}
 
         <form className="auth__form" onSubmit={handleSubmit}>
           <div className="form__group">

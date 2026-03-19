@@ -1,0 +1,172 @@
+.venue-card-preview {
+  width: 450px;
+  background: #1a1a1a;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  position: sticky;
+  top: 40px;
+}
+
+.card-image-container {
+  width: 100%;
+  height: 720px;
+  position: relative;
+  background: #0a0a0a;
+}
+
+.card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.card-image-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+}
+
+.add-image-text {
+  color: #666;
+  font-size: 22px;
+  font-weight: 500;
+}
+
+/* Image Indicators at Top */
+.image-indicators {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  gap: 6px;
+  z-index: 10;
+}
+
+.indicator-bar {
+  flex: 1;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 2px;
+  transition: background 0.3s;
+}
+
+.indicator-bar.active {
+  background: rgba(255, 255, 255, 1);
+}
+
+/* Content Overlay (on top of image) */
+.card-overlay-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 24px;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.9) 0%,
+    rgba(0, 0, 0, 0.7) 50%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  color: #fff;
+}
+
+.card-title {
+  font-size: 32px;
+  font-weight: bold;
+  margin: 0 0 12px 0;
+  color: #fff;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.card-categories {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.category-pill {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  background: #fff;
+  color: #000;
+  border: 1px solid #fff;
+}
+
+.category-pill.placeholder {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.card-distance {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 8px 0;
+}
+
+.card-status-container {
+  margin: 12px 0;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 8px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.status-badge:hover {
+  transform: scale(1.05);
+}
+
+.status-badge.open {
+  background: #4CAF50;
+  color: #fff;
+}
+
+.status-badge.closed {
+  background: #666;
+  color: #fff;
+}
+
+.card-location {
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 8px 0 16px 0;
+}
+
+/* Bottom Drag Handle */
+.card-drag-handle {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+  cursor: grab;
+}
+
+.card-drag-handle:active {
+  cursor: grabbing;
+}
+
+.handle-bar {
+  width: 60px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 3px;
+}
