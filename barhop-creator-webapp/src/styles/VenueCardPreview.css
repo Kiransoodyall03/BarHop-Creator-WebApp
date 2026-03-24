@@ -1,18 +1,25 @@
+/* ==============================
+   VENUE CARD PREVIEW
+   src/styles/VenueCardPreview.css
+   ============================== */
+
 .venue-card-preview {
-  width: 450px;
+  width: min(450px, 100%);
   background: #1a1a1a;
-  border-radius: 20px;
+  border-radius: clamp(16px, 2.5vw, 20px);
   overflow: hidden;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 clamp(8px, 1.5vw, 12px) clamp(24px, 4vw, 32px) rgba(0, 0, 0, 0.5);
   position: sticky;
-  top: 40px;
+  top: clamp(20px, 5vh, 40px);
+  max-width: 100%;
 }
 
 .card-image-container {
   width: 100%;
-  height: 720px;
+  height: clamp(500px, 80vh, 720px);
   position: relative;
   background: #0a0a0a;
+  aspect-ratio: 9/16; /* Maintain phone-like aspect ratio */
 }
 
 .card-image {
@@ -32,24 +39,24 @@
 
 .add-image-text {
   color: #666;
-  font-size: 22px;
+  font-size: clamp(18px, 2.5vw, 22px);
   font-weight: 500;
 }
 
 /* Image Indicators at Top */
 .image-indicators {
   position: absolute;
-  top: 12px;
-  left: 12px;
-  right: 12px;
+  top: clamp(8px, 1.5vh, 12px);
+  left: clamp(8px, 1.5vw, 12px);
+  right: clamp(8px, 1.5vw, 12px);
   display: flex;
-  gap: 6px;
+  gap: clamp(4px, 0.8vw, 6px);
   z-index: 10;
 }
 
 .indicator-bar {
   flex: 1;
-  height: 3px;
+  height: clamp(2px, 0.4vh, 3px);
   background: rgba(255, 255, 255, 0.4);
   border-radius: 2px;
   transition: background 0.3s;
@@ -65,7 +72,7 @@
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 24px;
+  padding: clamp(16px, 3vw, 24px);
   background: linear-gradient(
     to top,
     rgba(0, 0, 0, 0.9) 0%,
@@ -76,28 +83,31 @@
 }
 
 .card-title {
-  font-size: 32px;
+  font-size: clamp(24px, 4vw, 32px);
   font-weight: bold;
-  margin: 0 0 12px 0;
+  margin: 0 0 clamp(8px, 1.5vh, 12px) 0;
   color: #fff;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  line-height: 1.2;
+  word-break: break-word;
 }
 
 .card-categories {
   display: flex;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: clamp(6px, 1vw, 8px);
+  margin-bottom: clamp(8px, 1.5vh, 12px);
   flex-wrap: wrap;
 }
 
 .category-pill {
-  padding: 6px 14px;
+  padding: clamp(5px, 0.8vh, 6px) clamp(12px, 2vw, 14px);
   border-radius: 20px;
-  font-size: 13px;
+  font-size: clamp(12px, 1.5vw, 13px);
   font-weight: 600;
   background: #fff;
   color: #000;
   border: 1px solid #fff;
+  white-space: nowrap;
 }
 
 .category-pill.placeholder {
@@ -107,23 +117,24 @@
 }
 
 .card-distance {
-  font-size: 14px;
+  font-size: clamp(13px, 1.6vw, 14px);
   color: rgba(255, 255, 255, 0.8);
-  margin: 8px 0;
+  margin: clamp(6px, 1vh, 8px) 0;
 }
 
 .card-status-container {
-  margin: 12px 0;
+  margin: clamp(10px, 1.5vh, 12px) 0;
 }
 
 .status-badge {
   display: inline-block;
-  padding: 8px 24px;
-  border-radius: 8px;
+  padding: clamp(7px, 1vh, 8px) clamp(20px, 3vw, 24px);
+  border-radius: clamp(6px, 1vw, 8px);
   font-weight: 600;
-  font-size: 15px;
+  font-size: clamp(14px, 1.7vw, 15px);
   cursor: pointer;
   transition: transform 0.2s;
+  white-space: nowrap;
 }
 
 .status-badge:hover {
@@ -141,9 +152,11 @@
 }
 
 .card-location {
-  font-size: 15px;
+  font-size: clamp(14px, 1.7vw, 15px);
   color: rgba(255, 255, 255, 0.9);
-  margin: 8px 0 16px 0;
+  margin: clamp(6px, 1vh, 8px) 0 clamp(12px, 2vh, 16px) 0;
+  line-height: 1.4;
+  word-break: break-word;
 }
 
 /* Bottom Drag Handle */
@@ -152,12 +165,13 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 40px;
+  height: clamp(36px, 5vh, 40px);
   display: flex;
   align-items: center;
   justify-content: center;
   background: rgba(0, 0, 0, 0.3);
   cursor: grab;
+  touch-action: none;
 }
 
 .card-drag-handle:active {
@@ -165,8 +179,287 @@
 }
 
 .handle-bar {
-  width: 60px;
-  height: 5px;
+  width: clamp(50px, 8vw, 60px);
+  height: clamp(4px, 0.6vh, 5px);
   background: rgba(255, 255, 255, 0.5);
   border-radius: 3px;
+}
+
+/* Container Query Support */
+@supports (container-type: inline-size) {
+  .venue-card-preview {
+    container-type: inline-size;
+    container-name: venue-card;
+  }
+
+  @container venue-card (max-width: 400px) {
+    .card-title {
+      font-size: 24px;
+    }
+
+    .category-pill {
+      font-size: 11px;
+      padding: 4px 10px;
+    }
+
+    .status-badge {
+      font-size: 13px;
+      padding: 6px 18px;
+    }
+
+    .card-overlay-content {
+      padding: 16px;
+    }
+  }
+
+  @container venue-card (max-width: 320px) {
+    .card-title {
+      font-size: 20px;
+    }
+
+    .card-image-container {
+      height: 500px;
+    }
+  }
+}
+
+/* Responsive Breakpoints */
+@media (max-width: 768px) {
+  .venue-card-preview {
+    position: relative;
+    top: 0;
+    max-width: 450px;
+    margin: 0 auto;
+  }
+
+  .card-image-container {
+    height: clamp(400px, 70vh, 600px);
+  }
+}
+
+@media (max-width: 480px) {
+  .venue-card-preview {
+    border-radius: 16px;
+    width: 100%;
+  }
+
+  .card-image-container {
+    height: clamp(400px, 65vh, 500px);
+  }
+
+  .card-overlay-content {
+    padding: 16px;
+  }
+
+  .card-title {
+    font-size: 22px;
+  }
+
+  .category-pill {
+    font-size: 11px;
+    padding: 4px 10px;
+  }
+
+  .status-badge {
+    font-size: 13px;
+    padding: 6px 18px;
+  }
+}
+
+@media (max-width: 320px) {
+  .card-image-container {
+    height: 450px;
+  }
+
+  .card-title {
+    font-size: 20px;
+  }
+
+  .card-overlay-content {
+    padding: 12px;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .indicator-bar,
+  .status-badge {
+    transition: none;
+  }
+
+  .status-badge:hover {
+    transform: none;
+  }
+}
+
+/* Focus states */
+.status-badge:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .status-badge:hover {
+    transform: none;
+  }
+
+  .card-drag-handle {
+    height: 44px; /* Larger touch target */
+  }
+
+  .handle-bar {
+    height: 5px;
+    width: 60px;
+  }
+}
+
+/* Print styles */
+@media print {
+  .venue-card-preview {
+    position: static;
+    box-shadow: none;
+    border: 1px solid #ddd;
+  }
+
+  .card-drag-handle {
+    display: none;
+  }
+}
+
+/* Bottom Sheet */
+.card-bottom-sheet {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #1a1a1a;
+  border-radius: clamp(20px, 3vw, 24px) clamp(20px, 3vw, 24px) 0 0;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+  transform: translateY(calc(100% - 100px));
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+  z-index: 20;
+  max-height: 80%;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-bottom-sheet.open {
+  transform: translateY(0);
+}
+
+/* Drag Handle - Updated positioning */
+.card-drag-handle {
+  position: relative;
+  height: clamp(40px, 6vh, 50px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  cursor: grab;
+  touch-action: none;
+  flex-shrink: 0;
+  padding: clamp(12px, 2vh, 16px) 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-drag-handle:active {
+  cursor: grabbing;
+}
+
+.handle-bar {
+  width: clamp(50px, 10vw, 60px);
+  height: clamp(4px, 0.6vh, 5px);
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 3px;
+}
+
+/* Sheet Content */
+.sheet-content {
+  padding: clamp(16px, 3vw, 24px);
+  overflow-y: auto;
+  flex: 1;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 167, 38, 0.6) rgba(255, 255, 255, 0.05);
+}
+
+.sheet-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sheet-content::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+.sheet-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 167, 38, 0.6);
+  border-radius: 3px;
+}
+
+.sheet-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 167, 38, 0.8);
+}
+
+.sheet-title {
+  font-size: clamp(20px, 3vw, 24px);
+  font-weight: bold;
+  color: #FFA726;
+  margin: 0 0 clamp(16px, 2.5vh, 20px) 0;
+}
+
+.sheet-section {
+  margin-bottom: clamp(20px, 3vh, 24px);
+}
+
+.sheet-section:last-child {
+  margin-bottom: 0;
+}
+
+.sheet-section-title {
+  font-size: clamp(16px, 2vw, 18px);
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 clamp(8px, 1.2vh, 10px) 0;
+}
+
+.sheet-description {
+  font-size: clamp(14px, 1.7vw, 15px);
+  color: #ccc;
+  line-height: 1.6;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.sheet-placeholder {
+  font-size: clamp(13px, 1.6vw, 14px);
+  color: #888;
+  font-style: italic;
+  margin: 0;
+}
+
+/* Prevent body scroll when dragging */
+body.dragging {
+  overflow: hidden;
+  touch-action: none;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .card-bottom-sheet {
+    max-height: 85%;
+  }
+
+  .sheet-content {
+    padding: 16px;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .card-bottom-sheet {
+    transition: none;
+  }
 }

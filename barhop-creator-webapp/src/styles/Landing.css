@@ -13,35 +13,42 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem 2.5rem;
+  padding: clamp(1rem, 2vh, 1.5rem) clamp(1.5rem, 4vw, 2.5rem);
   position: fixed;
   top: 0;
   width: 100%;
   z-index: 100;
   background: linear-gradient(to bottom, rgba(13,13,13,0.95), transparent);
+  backdrop-filter: blur(8px);
 }
 
 .landing__logo {
   font-family: var(--font-display);
-  font-size: 1.8rem;
+  font-size: clamp(1.4rem, 2.5vw, 1.8rem);
   letter-spacing: 0.08em;
   color: var(--color-accent);
+  white-space: nowrap;
 }
 
 .landing__nav-links {
   display: flex;
-  gap: 1rem;
+  gap: clamp(0.6rem, 1.5vw, 1rem);
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .btn {
   display: inline-block;
-  padding: 0.6rem 1.4rem;
+  padding: clamp(0.5rem, 0.8vh, 0.6rem) clamp(1rem, 2vw, 1.4rem);
   border-radius: var(--radius);
-  font-size: 0.9rem;
+  font-size: clamp(0.8rem, 1vw, 0.9rem);
   font-weight: 500;
   letter-spacing: 0.03em;
   transition: all var(--transition);
   border: none;
+  white-space: nowrap;
+  cursor: pointer;
+  text-decoration: none;
 }
 
 .btn--ghost {
@@ -65,11 +72,12 @@
 .btn--primary:hover {
   background: var(--color-accent-dim);
   opacity: 1;
+  transform: translateY(-2px);
 }
 
 .btn--large {
-  padding: 0.9rem 2.2rem;
-  font-size: 1rem;
+  padding: clamp(0.7rem, 1.2vh, 0.9rem) clamp(1.6rem, 3vw, 2.2rem);
+  font-size: clamp(0.9rem, 1.2vw, 1rem);
 }
 
 /* --- Hero --- */
@@ -79,32 +87,34 @@
   flex-direction: column;
   justify-content: center;
   align-items: flex-start;
-  padding: 10rem 2.5rem 5rem;
-  max-width: var(--max-width);
+  padding: clamp(6rem, 15vh, 10rem) clamp(1.5rem, 4vw, 2.5rem) clamp(3rem, 8vh, 5rem);
+  max-width: min(var(--max-width), 100%);
   margin: 0 auto;
   width: 100%;
   position: relative;
 }
 
 .landing__eyebrow {
-  font-size: 0.8rem;
+  font-size: clamp(0.7rem, 1vw, 0.8rem);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--color-accent);
-  margin-bottom: 1rem;
+  margin-bottom: clamp(0.6rem, 1.5vh, 1rem);
   opacity: 0;
   animation: fadeUp 0.6s ease 0.1s forwards;
 }
 
 .landing__headline {
   font-family: var(--font-display);
-  font-size: clamp(4rem, 10vw, 8rem);
+  font-size: clamp(2.5rem, 10vw, 8rem);
   line-height: 0.95;
   letter-spacing: 0.02em;
   color: var(--color-text);
-  margin-bottom: 1.5rem;
+  margin-bottom: clamp(1rem, 2vh, 1.5rem);
   opacity: 0;
   animation: fadeUp 0.6s ease 0.25s forwards;
+  word-break: break-word;
+  hyphens: auto;
 }
 
 .landing__headline span {
@@ -112,64 +122,69 @@
 }
 
 .landing__sub {
-  max-width: 480px;
-  font-size: 1.05rem;
+  max-width: min(480px, 100%);
+  font-size: clamp(0.95rem, 1.3vw, 1.05rem);
   color: var(--color-muted);
-  margin-bottom: 2.5rem;
+  line-height: 1.6;
+  margin-bottom: clamp(1.5rem, 3vh, 2.5rem);
   opacity: 0;
   animation: fadeUp 0.6s ease 0.4s forwards;
 }
 
 .landing__cta {
   display: flex;
-  gap: 1rem;
+  gap: clamp(0.6rem, 1.5vw, 1rem);
   opacity: 0;
   animation: fadeUp 0.6s ease 0.55s forwards;
+  flex-wrap: wrap;
 }
 
 /* --- Background glow --- */
 .landing__glow {
   position: fixed;
-  top: -200px;
-  right: -200px;
-  width: 600px;
-  height: 600px;
+  top: clamp(-300px, -20vw, -200px);
+  right: clamp(-300px, -20vw, -200px);
+  width: clamp(400px, 50vw, 600px);
+  height: clamp(400px, 50vw, 600px);
   background: radial-gradient(circle, rgba(245,166,35,0.08) 0%, transparent 70%);
   pointer-events: none;
   z-index: 0;
+  opacity: 0.7;
 }
 
 /* --- Features strip --- */
 .landing__features {
   display: flex;
   justify-content: center;
-  gap: 3rem;
-  padding: 4rem 2.5rem;
+  gap: clamp(2rem, 4vw, 3rem);
+  padding: clamp(2.5rem, 6vh, 4rem) clamp(1.5rem, 4vw, 2.5rem);
   border-top: 1px solid var(--color-border);
   flex-wrap: wrap;
 }
 
 .feature {
   text-align: center;
-  max-width: 220px;
+  max-width: min(220px, 100%);
+  flex: 1 1 min(200px, 100%);
   opacity: 0;
   animation: fadeUp 0.6s ease 0.7s forwards;
 }
 
 .feature__icon {
-  font-size: 2rem;
-  margin-bottom: 0.75rem;
+  font-size: clamp(1.6rem, 2.5vw, 2rem);
+  margin-bottom: clamp(0.5rem, 1vh, 0.75rem);
 }
 
 .feature__title {
   font-weight: 500;
-  margin-bottom: 0.4rem;
-  font-size: 0.95rem;
+  margin-bottom: clamp(0.3rem, 0.6vh, 0.4rem);
+  font-size: clamp(0.85rem, 1.1vw, 0.95rem);
 }
 
 .feature__desc {
-  font-size: 0.85rem;
+  font-size: clamp(0.75rem, 1vw, 0.85rem);
   color: var(--color-muted);
+  line-height: 1.5;
 }
 
 /* --- Animations --- */
@@ -181,5 +196,110 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Container Query Support */
+@supports (container-type: inline-size) {
+  .landing__hero {
+    container-type: inline-size;
+    container-name: hero;
+  }
+
+  @container hero (max-width: 600px) {
+    .landing__headline {
+      font-size: 2.5rem;
+      line-height: 1.1;
+    }
+
+    .landing__sub {
+      font-size: 0.95rem;
+    }
+
+    .landing__cta {
+      width: 100%;
+    }
+
+    .btn {
+      flex: 1 1 auto;
+      text-align: center;
+    }
+  }
+}
+
+/* Media Queries - Only for Layout Shifts */
+@media (max-width: 768px) {
+  .landing__nav-links {
+    gap: 0.5rem;
+  }
+
+  .landing__hero {
+    align-items: center;
+    text-align: center;
+  }
+
+  .landing__headline {
+    text-align: center;
+  }
+
+  .landing__sub {
+    text-align: center;
+  }
+
+  .landing__cta {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .landing__features {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .feature {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .landing__nav {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .landing__logo {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .landing__nav-links {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .landing__glow {
+    opacity: 0.4;
+  }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .landing__eyebrow,
+  .landing__headline,
+  .landing__sub,
+  .landing__cta,
+  .feature {
+    animation: none;
+    opacity: 1;
+  }
+
+  .btn--primary:hover {
+    transform: none;
   }
 }
