@@ -12,12 +12,36 @@ function VenueCardPreview({ venueData, currentStep }) {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [dragStartY, setDragStartY] = useState(null);
   const [currentY, setCurrentY] = useState(0);
+  const [lastTap, setLastTap] = useState(0);
   const sheetRef = useRef(null);
   const isDragging = useRef(false);
+  const hasMoved = useRef(false);
+
+  // Handle double click/tap
+  const handleDoubleClick = () => {
+    setSheetOpen(!sheetOpen);
+  };
+
+  // Detect double tap on mobile
+  const handleTouchStartIndicator = (e) => {
+    const currentTime = new Date().getTime();
+    const tapLength = currentTime - lastTap;
+    
+    if (tapLength < 300 && tapLength > 0) {
+      // Double tap detected
+      e.preventDefault();
+      setSheetOpen(!sheetOpen);
+    } else {
+      // Single tap - start drag
+      setLastTap(currentTime);
+      handleDragStart(e.touches[0].clientY);
+    }
+  };
 
   // Handle drag start
   const handleDragStart = (clientY) => {
     isDragging.current = true;
+    hasMoved.current = false;
     setDragStartY(clientY);
   };
 
@@ -27,15 +51,20 @@ function VenueCardPreview({ venueData, currentStep }) {
 
     const deltaY = clientY - dragStartY;
     
+    // Mark as moved if dragged more than 5px
+    if (Math.abs(deltaY) > 5) {
+      hasMoved.current = true;
+    }
+    
     if (sheetOpen) {
       // When open, only allow downward dragging
       if (deltaY > 0) {
-        setCurrentY(Math.min(deltaY, 300));
+        setCurrentY(Math.min(deltaY, 400));
       }
     } else {
       // When closed, only allow upward dragging
       if (deltaY < 0) {
-        setCurrentY(Math.max(deltaY, -300));
+        setCurrentY(Math.max(deltaY, -400));
       }
     }
   };
@@ -46,22 +75,26 @@ function VenueCardPreview({ venueData, currentStep }) {
     
     isDragging.current = false;
     
-    const threshold = 80; // pixels to trigger open/close
+    // Only trigger open/close if actually dragged
+    if (hasMoved.current) {
+      const threshold = 60; // Reduced threshold for easier swiping
 
-    if (sheetOpen) {
-      // If dragged down more than threshold, close
-      if (currentY > threshold) {
-        setSheetOpen(false);
-      }
-    } else {
-      // If dragged up more than threshold, open
-      if (currentY < -threshold) {
-        setSheetOpen(true);
+      if (sheetOpen) {
+        // If dragged down more than threshold, close
+        if (currentY > threshold) {
+          setSheetOpen(false);
+        }
+      } else {
+        // If dragged up more than threshold, open
+        if (currentY < -threshold) {
+          setSheetOpen(true);
+        }
       }
     }
 
     setCurrentY(0);
     setDragStartY(null);
+    hasMoved.current = false;
   };
 
   // Mouse events
@@ -70,7 +103,10 @@ function VenueCardPreview({ venueData, currentStep }) {
   };
 
   const handleMouseMove = (e) => {
-    handleDragMove(e.clientY);
+    if (isDragging.current) {
+      e.preventDefault();
+      handleDragMove(e.clientY);
+    }
   };
 
   const handleMouseUp = () => {
@@ -83,7 +119,10 @@ function VenueCardPreview({ venueData, currentStep }) {
   };
 
   const handleTouchMove = (e) => {
-    handleDragMove(e.touches[0].clientY);
+    if (isDragging.current) {
+      e.preventDefault();
+      handleDragMove(e.touches[0].clientY);
+    }
   };
 
   const handleTouchEnd = () => {
@@ -93,26 +132,26 @@ function VenueCardPreview({ venueData, currentStep }) {
   // Add/remove event listeners
   useEffect(() => {
     if (isDragging.current) {
-      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mousemove', handleMouseMove, { passive: false });
       document.addEventListener('mouseup', handleMouseUp);
-      document.addEventListener('touchmove', handleTouchMove);
+      document.addEventListener('touchmove', handleTouchMove, { passive: false });
       document.addEventListener('touchend', handleTouchEnd);
-    }
 
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-      document.removeEventListener('touchmove', handleTouchMove);
-      document.removeEventListener('touchend', handleTouchEnd);
-    };
-  }, [isDragging.current, dragStartY]);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+        document.removeEventListener('touchmove', handleTouchMove);
+        document.removeEventListener('touchend', handleTouchEnd);
+      };
+    }
+  }, [isDragging.current]);
 
   // Calculate sheet position
   const getSheetTransform = () => {
     if (sheetOpen) {
       return `translateY(${currentY}px)`;
     } else {
-      return `translateY(calc(100% - 100px + ${currentY}px))`;
+      return `translateY(calc(100% - 40px + ${currentY}px))`;
     }
   };
 
@@ -184,13 +223,14 @@ function VenueCardPreview({ venueData, currentStep }) {
           className={`card-bottom-sheet ${sheetOpen ? 'open' : ''}`}
           style={{ transform: getSheetTransform() }}
         >
-          {/* Drag Handle */}
+          {/* Simple indicator bar at top - supports double click and drag */}
           <div 
-            className="card-drag-handle"
+            className="sheet-indicator"
             onMouseDown={handleMouseDown}
-            onTouchStart={handleTouchStart}
+            onTouchStart={handleTouchStartIndicator}
+            onDoubleClick={handleDoubleClick}
           >
-            <div className="handle-bar" />
+            <div className="indicator-handle-bar" />
           </div>
 
           {/* Sheet Content */}

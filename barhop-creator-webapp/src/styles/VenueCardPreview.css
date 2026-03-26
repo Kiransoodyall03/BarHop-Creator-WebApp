@@ -326,28 +326,31 @@
     display: none;
   }
 }
+  /* Bottom Sheet */
+  .card-bottom-sheet {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: transparent; /* Fully transparent background */
+    transform: translateY(calc(100% - 40px));
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
+    z-index: 20;
+    max-height: 80%;
+    display: flex;
+    flex-direction: column;
+    pointer-events: none; /* Allow clicks to pass through transparent areas */
+  }
 
-/* Bottom Sheet */
-.card-bottom-sheet {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: #1a1a1a;
-  border-radius: clamp(20px, 3vw, 24px) clamp(20px, 3vw, 24px) 0 0;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
-  transform: translateY(calc(100% - 100px));
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: transform;
-  z-index: 20;
-  max-height: 80%;
-  display: flex;
-  flex-direction: column;
-}
+  .card-bottom-sheet > * {
+    pointer-events: auto; /* Re-enable clicks on actual content */
+  }
 
-.card-bottom-sheet.open {
-  transform: translateY(0);
-}
+  .card-bottom-sheet.open {
+    transform: translateY(0);
+  }
+
 
 /* Drag Handle - Updated positioning */
 .card-drag-handle {
@@ -375,8 +378,47 @@
   border-radius: 3px;
 }
 
-/* Sheet Content */
+/* Simple indicator bar at top */
+.sheet-indicator {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent; /* Fully transparent */
+  flex-shrink: 0;
+  padding: 12px 0;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: pan-y; /* Allow vertical panning */
+}
+
+.indicator-handle-bar {
+  width: clamp(80px, 15vw, 120px);
+  height: 5px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+  transition: background 0.2s;
+}
+
+.sheet-indicator:hover .indicator-handle-bar {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.sheet-indicator:active .indicator-handle-bar {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+/* When sheet is open, make bar more visible */
+.card-bottom-sheet.open .indicator-handle-bar {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Sheet Content - Now has background */
 .sheet-content {
+  background: #1a1a1a;
+  border-radius: clamp(20px, 3vw, 24px) clamp(20px, 3vw, 24px) 0 0;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
   padding: clamp(16px, 3vw, 24px);
   overflow-y: auto;
   flex: 1;
@@ -415,6 +457,7 @@
 
 .sheet-section:last-child {
   margin-bottom: 0;
+  padding-bottom: clamp(20px, 3vh, 24px);
 }
 
 .sheet-section-title {
@@ -439,7 +482,6 @@
   font-style: italic;
   margin: 0;
 }
-
 /* Prevent body scroll when dragging */
 body.dragging {
   overflow: hidden;
@@ -453,13 +495,17 @@ body.dragging {
   }
 
   .sheet-content {
-    padding: 16px;
+    padding: 0 16px 16px;
   }
 }
 
 /* Accessibility */
 @media (prefers-reduced-motion: reduce) {
   .card-bottom-sheet {
+    transition: none;
+  }
+  
+  .indicator-handle-bar {
     transition: none;
   }
 }
