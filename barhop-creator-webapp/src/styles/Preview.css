@@ -26,14 +26,16 @@
   width: clamp(40px, 6vw, 50px);
   height: clamp(40px, 6vw, 50px);
   border: clamp(3px, 0.5vw, 4px) solid #444;
-  border-top-color: #FFA726;
+  border-top-color: #ffa726;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin-bottom: clamp(16px, 2.5vh, 20px);
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .loading-container p {
@@ -58,7 +60,7 @@
 .empty-state h2 {
   font-size: clamp(28px, 5vw, 36px);
   margin-bottom: clamp(12px, 2vh, 16px);
-  color: #FFA726;
+  color: #ffa726;
   line-height: 1.2;
 }
 
@@ -71,7 +73,7 @@
 
 .create-venue-link {
   padding: clamp(14px, 1.8vh, 16px) clamp(24px, 4vw, 32px);
-  background: #FFA726;
+  background: #ffa726;
   color: #fff;
   text-decoration: none;
   border-radius: clamp(6px, 1vw, 8px);
@@ -83,7 +85,7 @@
 }
 
 .create-venue-link:hover {
-  background: #FF9800;
+  background: #ff9800;
   transform: translateY(-2px);
 }
 
@@ -99,14 +101,16 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  max-height: calc(100vh - clamp(100px, 15vh, 140px)); /* Account for navbar + padding */
+  max-height: calc(
+    100vh - clamp(100px, 15vh, 140px)
+  ); /* Account for navbar + padding */
   overflow: hidden; /* Prevent this container from scrolling */
 }
 
 .preview-title {
   font-size: clamp(32px, 6vw, 48px);
   font-weight: bold;
-  color: #FFA726;
+  color: #ffa726;
   margin-bottom: clamp(16px, 2vh, 24px); /* Reduced from 40px */
   line-height: 1.2;
   word-break: break-word;
@@ -141,7 +145,7 @@
 
 .venue-selector:focus {
   outline: none;
-  border-color: #FFA726;
+  border-color: #ffa726;
 }
 
 .venue-selector option {
@@ -198,7 +202,7 @@
 .detail-section h3 {
   font-size: clamp(18px, 2.5vw, 22px);
   font-weight: 600;
-  color: #FFA726;
+  color: #ffa726;
   margin-bottom: clamp(12px, 2vh, 16px);
 }
 
@@ -243,7 +247,7 @@
 }
 
 .status-badge.published {
-  background: #4CAF50;
+  background: #4caf50;
   color: #fff;
 }
 
@@ -310,17 +314,17 @@
 }
 
 .edit-btn {
-  background: #2196F3;
+  background: #2196f3;
   color: #fff;
 }
 
 .edit-btn:hover {
-  background: #1976D2;
+  background: #1976d2;
   transform: translateY(-2px);
 }
 
 .publish-btn {
-  background: #4CAF50;
+  background: #4caf50;
   color: #fff;
 }
 
@@ -437,8 +441,8 @@
 @media (prefers-reduced-motion: reduce) {
   .spinner {
     animation: none;
-    border-top-color: #FFA726;
-    border-right-color: #FFA726;
+    border-top-color: #ffa726;
+    border-right-color: #ffa726;
   }
 
   .create-venue-link:hover,
@@ -452,6 +456,6 @@
 .venue-selector:focus-visible,
 .action-btn:focus-visible,
 .create-venue-link:focus-visible {
-  outline: 2px solid #FFA726;
+  outline: 2px solid #ffa726;
   outline-offset: 2px;
 }

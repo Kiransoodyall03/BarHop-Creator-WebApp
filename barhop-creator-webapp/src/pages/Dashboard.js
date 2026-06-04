@@ -1,101 +1,214 @@
-import React from "react";
-import { useAuth } from "../context/AuthContext";
-import Navbar from "../components/Navbar";
-import "../styles/Dashboard.css";
+import React, { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { useError } from '../context/ErrorContext';
+import Navbar from '../components/Navbar';
+import VenueCard from '../components/VenueCard';
+import {
+  getVenuesByOwner,
+  deleteVenue,
+  updateVenue,
+} from '../firebase/venueService';
+import '../styles/Dashboard.css';
 
 function Dashboard() {
   const { currentUser } = useAuth();
+  const { showError, showSuccess } = useError();
+  const [venues, setVenues] = useState([]);
+  const [filteredVenues, setFilteredVenues] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
+
+  // 1. Wrapped in useCallback and moved ABOVE useEffect
+  const fetchVenues = useCallback(async () => {
+    try {
+      setLoading(true);
+      const userVenues = await getVenuesByOwner(currentUser.uid);
+      setVenues(userVenues);
+      setFilteredVenues(userVenues);
+    } catch (error) {
+      console.error('Error fetching venues:', error);
+      showError('Failed to load venues. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }, [currentUser.uid, showError]);
+
+  // 2. Wrapped in useCallback and moved ABOVE useEffect
+  const applyFilters = useCallback(() => {
+    let filtered = [...venues];
+
+    // Apply search
+    if (searchQuery) {
+      filtered = filtered.filter(
+        (venue) =>
+          venue.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          venue.address.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Apply status filter
+    if (filterStatus !== 'all') {
+      filtered = filtered.filter((venue) =>
+        filterStatus === 'published' ? venue.published : !venue.published
+      );
+    }
+
+    setFilteredVenues(filtered);
+  }, [venues, searchQuery, filterStatus]);
+
+  // 3. Clean useEffects with proper dependencies
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchVenues();
+  }, [fetchVenues]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    applyFilters();
+  }, [applyFilters]);
+
+  const handleDelete = async (venueId) => {
+    try {
+      await deleteVenue(venueId);
+      showSuccess('Venue deleted successfully');
+      fetchVenues();
+    } catch (error) {
+      console.error('Error deleting venue:', error);
+      showError('Failed to delete venue. Please try again.');
+    }
+  };
+
+  const handleTogglePublish = async (venueId, currentStatus) => {
+    try {
+      await updateVenue(venueId, {
+        published: !currentStatus,
+        updatedAt: new Date(),
+      });
+      showSuccess(currentStatus ? 'Venue unpublished' : 'Venue published');
+      fetchVenues();
+    } catch (error) {
+      console.error('Error updating venue:', error);
+      showError('Failed to update venue. Please try again.');
+    }
+  };
+
+  // Calculate stats
+  const stats = {
+    total: venues.length,
+    published: venues.filter((v) => v.published).length,
+    draft: venues.filter((v) => !v.published).length,
+  };
+
+  if (loading) {
+    return (
+      <>
+        <Navbar />
+        <div className="dashboard">
+          <div className="dashboard__loading">
+            <div className="spinner"></div>
+            <p>Loading your venues...</p>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
-    <div className="dashboard">
+    <>
       <Navbar />
+      <div className="dashboard">
+        <div className="dashboard__container">
+          {/* Header */}
+          <div className="dashboard__header">
+            <div>
+              <h1 className="dashboard__title">Dashboard</h1>
+              <p className="dashboard__subtitle">Manage your venue cards</p>
+            </div>
+            <Link to="/venue/create" className="btn-create">
+              <span className="btn-create__icon">+</span>
+              Create Venue
+            </Link>
+          </div>
 
-      <main className="dashboard__main">
-        <p className="dashboard__eyebrow">Signed in as</p>
-        <h1 className="dashboard__title">
-          {currentUser.firstName} {currentUser.lastName}
-        </h1>
+          {/* Stats */}
+          <div className="dashboard__stats">
+            <div className="stat-card">
+              <div className="stat-card__value">{stats.total}</div>
+              <div className="stat-card__label">Total Venues</div>
+            </div>
+            <div className="stat-card stat-card--success">
+              <div className="stat-card__value">{stats.published}</div>
+              <div className="stat-card__label">Published</div>
+            </div>
+            <div className="stat-card stat-card--muted">
+              <div className="stat-card__value">{stats.draft}</div>
+              <div className="stat-card__label">Drafts</div>
+            </div>
+          </div>
 
-        <div className="dashboard__card">
-
-          {currentUser.photoURL && (
-            <div className="detail__row">
-              <span className="detail__label">Photo</span>
-              <img
-                className="detail__avatar"
-                src={currentUser.photoURL}
-                alt={currentUser.displayName}
+          {/* Search and Filters */}
+          {venues.length > 0 && (
+            <div className="dashboard__controls">
+              <input
+                type="text"
+                placeholder="Search venues..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="search-input"
               />
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="filter-select"
+              >
+                <option value="all">All Status</option>
+                <option value="published">Published</option>
+                <option value="draft">Draft</option>
+              </select>
             </div>
           )}
 
-          <div className="detail__row">
-            <span className="detail__label">User ID</span>
-            <span className="detail__value detail__value--mono">{currentUser.uid}</span>
-          </div>
-
-          <div className="detail__row">
-            <span className="detail__label">Email</span>
-            <span className="detail__value">{currentUser.email}</span>
-          </div>
-
-          <div className="detail__row">
-            <span className="detail__label">Display Name</span>
-            <span className="detail__value">{currentUser.displayName ?? "—"}</span>
-          </div>
-
-          <div className="detail__row">
-            <span className="detail__label">First Name</span>
-            <span className="detail__value">{currentUser.firstName}</span>
-          </div>
-
-          <div className="detail__row">
-            <span className="detail__label">Last Name</span>
-            <span className="detail__value">{currentUser.lastName}</span>
-          </div>
-
-          <div className="detail__row">
-            <span className="detail__label">Sign-in Method</span>
-            <span className={`detail__badge detail__badge--${currentUser.provider}`}>
-              {currentUser.provider}
-            </span>
-          </div>
-
-          <div className="detail__row">
-            <span className="detail__label">Email Verified</span>
-            <span className={`detail__badge detail__badge--${currentUser.emailVerified ? "verified" : "unverified"}`}>
-              {currentUser.emailVerified ? "Yes" : "No"}
-            </span>
-          </div>
-
-          <div className="detail__row">
-            <span className="detail__label">Member Since</span>
-            <span className="detail__value">
-              {currentUser.createdAt
-                ? new Date(currentUser.createdAt).toLocaleDateString("en-ZA", {
-                    day: "numeric", month: "long", year: "numeric",
-                  })
-                : "—"}
-            </span>
-          </div>
-
-          <div className="detail__row">
-            <span className="detail__label">Onboarding</span>
-            <span className={`detail__badge detail__badge--${currentUser.onboardingComplete ? "verified" : "unverified"}`}>
-              {currentUser.onboardingComplete ? "Complete" : "Pending"}
-            </span>
-          </div>
-
-          <div className="detail__row">
-            <span className="detail__label">Venue ID</span>
-            <span className="detail__value detail__value--mono">
-              {currentUser.venueId ?? "Not linked"}
-            </span>
-          </div>
-
+          {/* Venues Grid */}
+          {filteredVenues.length > 0 ? (
+            <div className="dashboard__grid">
+              {filteredVenues.map((venue) => (
+                <VenueCard
+                  key={venue.id}
+                  venue={venue}
+                  onDelete={handleDelete}
+                  onTogglePublish={handleTogglePublish}
+                />
+              ))}
+            </div>
+          ) : venues.length > 0 ? (
+            <div className="dashboard__empty">
+              <p>No venues match your search criteria</p>
+              <button
+                onClick={() => {
+                  setSearchQuery('');
+                  setFilterStatus('all');
+                }}
+                className="btn-clear"
+              >
+                Clear Filters
+              </button>
+            </div>
+          ) : (
+            <div className="dashboard__empty">
+              <div className="empty-icon">🏪</div>
+              <h2>No Venues Yet</h2>
+              <p>Create your first venue card to get started</p>
+              <Link to="/venue/create" className="btn-create">
+                <span className="btn-create__icon">+</span>
+                Create Your First Venue
+              </Link>
+            </div>
+          )}
         </div>
-      </main>
-    </div>
+      </div>
+    </>
   );
 }
 

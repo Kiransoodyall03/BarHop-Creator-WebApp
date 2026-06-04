@@ -1,43 +1,47 @@
-import React, { useState, useEffect } from "react";
-import { useAuth } from "../context/AuthContext";
-import { getVenuesByOwner } from "../firebase/venueService";
-import Navbar from "../components/Navbar";
-import VenueCardPreview from "../components/VenueCardPreview";
-import "../styles/Preview.css";
-import { useError } from "../context/ErrorContext";
+import React, { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { getVenuesByOwner } from '../firebase/venueService';
+import Navbar from '../components/Navbar';
+import VenueCardPreview from '../components/VenueCardPreview';
+import '../styles/Preview.css';
+import { useError } from '../context/ErrorContext';
 
 function Preview() {
   const { currentUser } = useAuth();
   const [venues, setVenues] = useState([]);
   const [selectedVenue, setSelectedVenue] = useState(null);
   const [loading, setLoading] = useState(true);
-  const {showError,showSuccess} = useError();
 
-  useEffect(() => {
-    fetchVenues();
-  }, []);
+  // Removed unused showSuccess
+  const { showError } = useError();
 
-  const fetchVenues = async () => {
+  // Wrapped in useCallback and moved ABOVE useEffect
+  const fetchVenues = useCallback(async () => {
     try {
       setLoading(true);
       const userVenues = await getVenuesByOwner(currentUser.uid);
       setVenues(userVenues);
-      
+
       // Select the most recent venue by default
       if (userVenues.length > 0) {
         setSelectedVenue(userVenues[0]);
       }
     } catch (error) {
-      console.error("Error fetching venues:", error);
-      showError("Failed to load venues. Please try again later.");
+      console.error('Error fetching venues:', error);
+      showError('Failed to load venues. Please try again later.');
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentUser.uid, showError]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchVenues();
+  }, [fetchVenues]);
 
   const handleVenueSelect = (e) => {
     const venueId = e.target.value;
-    const venue = venues.find(v => v.id === venueId);
+    const venue = venues.find((v) => v.id === venueId);
     setSelectedVenue(venue);
   };
 
@@ -50,7 +54,7 @@ function Preview() {
       address: venue.address,
       categories: venue.category ? [venue.category] : [],
       images: venue.images || [],
-      description: venue.description || "",
+      description: venue.description || '',
     };
   };
 
@@ -92,8 +96,8 @@ function Preview() {
         {/* Left Side - Card Preview */}
         <div className="preview-card-section">
           {selectedVenue && (
-            <VenueCardPreview 
-              venueData={getVenuePreviewData(selectedVenue)} 
+            <VenueCardPreview
+              venueData={getVenuePreviewData(selectedVenue)}
               currentStep={4}
             />
           )}
@@ -106,14 +110,15 @@ function Preview() {
           {/* Venue Selector */}
           <div className="venue-selector-container">
             <label className="selector-label">Select Venue:</label>
-            <select 
+            <select
               className="venue-selector"
-              value={selectedVenue?.id || ""}
+              value={selectedVenue?.id || ''}
               onChange={handleVenueSelect}
             >
               {venues.map((venue) => (
                 <option key={venue.id} value={venue.id}>
-                  {venue.name} - {new Date(venue.createdAt?.toDate()).toLocaleDateString()}
+                  {venue.name} -{' '}
+                  {new Date(venue.createdAt?.toDate()).toLocaleDateString()}
                 </option>
               ))}
             </select>
@@ -135,13 +140,15 @@ function Preview() {
                 <div className="detail-row">
                   <span className="detail-label">Category:</span>
                   <span className="detail-value">
-                    {selectedVenue.category || "Not set"}
+                    {selectedVenue.category || 'Not set'}
                   </span>
                 </div>
                 <div className="detail-row">
                   <span className="detail-label">Status:</span>
-                  <span className={`status-badge ${selectedVenue.published ? 'published' : 'draft'}`}>
-                    {selectedVenue.published ? "Published" : "Draft"}
+                  <span
+                    className={`status-badge ${selectedVenue.published ? 'published' : 'draft'}`}
+                  >
+                    {selectedVenue.published ? 'Published' : 'Draft'}
                   </span>
                 </div>
               </div>
@@ -149,7 +156,7 @@ function Preview() {
               <div className="detail-section">
                 <h3>Description</h3>
                 <p className="description-text">
-                  {selectedVenue.description || "No description provided"}
+                  {selectedVenue.description || 'No description provided'}
                 </p>
               </div>
 
@@ -164,41 +171,42 @@ function Preview() {
                 <div className="detail-row">
                   <span className="detail-label">Video:</span>
                   <span className="detail-value">
-                    {selectedVenue.video ? "Yes" : "No"}
+                    {selectedVenue.video ? 'Yes' : 'No'}
                   </span>
                 </div>
               </div>
 
               <div className="detail-section">
                 <h3>Opening Hours</h3>
-                {Object.entries(selectedVenue.hours || {}).map(([day, hours]) => (
-                  <div key={day} className="hours-row">
-                    <span className="day-label">
-                      {day.charAt(0).toUpperCase() + day.slice(1)}:
-                    </span>
-                    <span className="hours-value">
-                      {hours.closed 
-                        ? "Closed" 
-                        : `${hours.open || "Not set"} - ${hours.close || "Not set"}`
-                      }
-                    </span>
-                  </div>
-                ))}
+                {Object.entries(selectedVenue.hours || {}).map(
+                  ([day, hours]) => (
+                    <div key={day} className="hours-row">
+                      <span className="day-label">
+                        {day.charAt(0).toUpperCase() + day.slice(1)}:
+                      </span>
+                      <span className="hours-value">
+                        {hours.closed
+                          ? 'Closed'
+                          : `${hours.open || 'Not set'} - ${hours.close || 'Not set'}`}
+                      </span>
+                    </div>
+                  )
+                )}
               </div>
 
               {/* Action Buttons */}
               <div className="preview-actions">
-                <a 
-                  href={`/venue/edit/${selectedVenue.id}`} 
+                <a
+                  href={`/venue/edit/${selectedVenue.id}`}
                   className="action-btn edit-btn"
                 >
                   Edit Venue
                 </a>
-                <button 
+                <button
                   className="action-btn publish-btn"
-                  onClick={() => alert("Publish functionality coming soon!")}
+                  onClick={() => alert('Publish functionality coming soon!')}
                 >
-                  {selectedVenue.published ? "Unpublish" : "Publish"}
+                  {selectedVenue.published ? 'Unpublish' : 'Publish'}
                 </button>
               </div>
             </div>

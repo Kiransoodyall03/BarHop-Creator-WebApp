@@ -1,9 +1,9 @@
-import React, { useState, useRef, useEffect } from "react";
-import "../styles/VenueCardPreview.css";
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import '../styles/VenueCardPreview.css';
 
-function VenueCardPreview({ venueData, currentStep }) {
+function VenueCardPreview({ venueData }) {
   const { title, address, categories, images, description } = venueData;
-  
+
   // Determine number of image indicators (max 4)
   const imageCount = Math.min(images.length || 1, 4);
   const currentImageIndex = 0;
@@ -22,11 +22,18 @@ function VenueCardPreview({ venueData, currentStep }) {
     setSheetOpen(!sheetOpen);
   };
 
+  // Handle drag start (Memoized for use in other functions)
+  const handleDragStart = useCallback((clientY) => {
+    isDragging.current = true;
+    hasMoved.current = false;
+    setDragStartY(clientY);
+  }, []);
+
   // Detect double tap on mobile
   const handleTouchStartIndicator = (e) => {
     const currentTime = new Date().getTime();
     const tapLength = currentTime - lastTap;
-    
+
     if (tapLength < 300 && tapLength > 0) {
       // Double tap detected
       e.preventDefault();
@@ -38,43 +45,39 @@ function VenueCardPreview({ venueData, currentStep }) {
     }
   };
 
-  // Handle drag start
-  const handleDragStart = (clientY) => {
-    isDragging.current = true;
-    hasMoved.current = false;
-    setDragStartY(clientY);
-  };
+  // Handle drag move (Memoized to satisfy useEffect dependencies)
+  const handleDragMove = useCallback(
+    (clientY) => {
+      if (!isDragging.current || dragStartY === null) return;
 
-  // Handle drag move
-  const handleDragMove = (clientY) => {
-    if (!isDragging.current || dragStartY === null) return;
+      const deltaY = clientY - dragStartY;
 
-    const deltaY = clientY - dragStartY;
-    
-    // Mark as moved if dragged more than 5px
-    if (Math.abs(deltaY) > 5) {
-      hasMoved.current = true;
-    }
-    
-    if (sheetOpen) {
-      // When open, only allow downward dragging
-      if (deltaY > 0) {
-        setCurrentY(Math.min(deltaY, 400));
+      // Mark as moved if dragged more than 5px
+      if (Math.abs(deltaY) > 5) {
+        hasMoved.current = true;
       }
-    } else {
-      // When closed, only allow upward dragging
-      if (deltaY < 0) {
-        setCurrentY(Math.max(deltaY, -400));
-      }
-    }
-  };
 
-  // Handle drag end
-  const handleDragEnd = () => {
+      if (sheetOpen) {
+        // When open, only allow downward dragging
+        if (deltaY > 0) {
+          setCurrentY(Math.min(deltaY, 400));
+        }
+      } else {
+        // When closed, only allow upward dragging
+        if (deltaY < 0) {
+          setCurrentY(Math.max(deltaY, -400));
+        }
+      }
+    },
+    [dragStartY, sheetOpen]
+  );
+
+  // Handle drag end (Memoized to satisfy useEffect dependencies)
+  const handleDragEnd = useCallback(() => {
     if (!isDragging.current) return;
-    
+
     isDragging.current = false;
-    
+
     // Only trigger open/close if actually dragged
     if (hasMoved.current) {
       const threshold = 60; // Reduced threshold for easier swiping
@@ -95,56 +98,49 @@ function VenueCardPreview({ venueData, currentStep }) {
     setCurrentY(0);
     setDragStartY(null);
     hasMoved.current = false;
-  };
+  }, [currentY, sheetOpen]);
+
+  // Add/remove event listeners safely
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (isDragging.current) {
+        e.preventDefault();
+        handleDragMove(e.clientY);
+      }
+    };
+
+    const handleMouseUp = () => {
+      handleDragEnd();
+    };
+
+    const handleTouchMove = (e) => {
+      if (isDragging.current) {
+        e.preventDefault();
+        handleDragMove(e.touches[0].clientY);
+      }
+    };
+
+    const handleTouchEnd = () => {
+      handleDragEnd();
+    };
+
+    document.addEventListener('mousemove', handleMouseMove, { passive: false });
+    document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    document.addEventListener('touchend', handleTouchEnd);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [handleDragMove, handleDragEnd]);
 
   // Mouse events
   const handleMouseDown = (e) => {
     handleDragStart(e.clientY);
   };
-
-  const handleMouseMove = (e) => {
-    if (isDragging.current) {
-      e.preventDefault();
-      handleDragMove(e.clientY);
-    }
-  };
-
-  const handleMouseUp = () => {
-    handleDragEnd();
-  };
-
-  // Touch events
-  const handleTouchStart = (e) => {
-    handleDragStart(e.touches[0].clientY);
-  };
-
-  const handleTouchMove = (e) => {
-    if (isDragging.current) {
-      e.preventDefault();
-      handleDragMove(e.touches[0].clientY);
-    }
-  };
-
-  const handleTouchEnd = () => {
-    handleDragEnd();
-  };
-
-  // Add/remove event listeners
-  useEffect(() => {
-    if (isDragging.current) {
-      document.addEventListener('mousemove', handleMouseMove, { passive: false });
-      document.addEventListener('mouseup', handleMouseUp);
-      document.addEventListener('touchmove', handleTouchMove, { passive: false });
-      document.addEventListener('touchend', handleTouchEnd);
-
-      return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-        document.removeEventListener('touchmove', handleTouchMove);
-        document.removeEventListener('touchend', handleTouchEnd);
-      };
-    }
-  }, [isDragging.current]);
 
   // Calculate sheet position
   const getSheetTransform = () => {
@@ -182,9 +178,7 @@ function VenueCardPreview({ venueData, currentStep }) {
 
         {/* Overlay Content (on top of image) */}
         <div className="card-overlay-content">
-          <h2 className="card-title">
-            {title || "Venue Title"}
-          </h2>
+          <h2 className="card-title">{title || 'Venue Title'}</h2>
 
           {/* Category Pills */}
           <div className="card-categories">
@@ -212,19 +206,17 @@ function VenueCardPreview({ venueData, currentStep }) {
           </div>
 
           {/* Location */}
-          <p className="card-location">
-            {address || "Location of Place"}
-          </p>
+          <p className="card-location">{address || 'Location of Place'}</p>
         </div>
 
         {/* Bottom Sheet */}
-        <div 
+        <div
           ref={sheetRef}
           className={`card-bottom-sheet ${sheetOpen ? 'open' : ''}`}
           style={{ transform: getSheetTransform() }}
         >
           {/* Simple indicator bar at top - supports double click and drag */}
-          <div 
+          <div
             className="sheet-indicator"
             onMouseDown={handleMouseDown}
             onTouchStart={handleTouchStartIndicator}
@@ -236,11 +228,12 @@ function VenueCardPreview({ venueData, currentStep }) {
           {/* Sheet Content */}
           <div className="sheet-content">
             <h3 className="sheet-title">About this place</h3>
-            
+
             <div className="sheet-section">
               <h4 className="sheet-section-title">Description</h4>
               <p className="sheet-description">
-                {description || "No description available yet. Add a description to tell people more about your venue!"}
+                {description ||
+                  'No description available yet. Add a description to tell people more about your venue!'}
               </p>
             </div>
 
@@ -256,7 +249,9 @@ function VenueCardPreview({ venueData, currentStep }) {
 
             <div className="sheet-section">
               <h4 className="sheet-section-title">Contact</h4>
-              <p className="sheet-placeholder">Contact information coming soon</p>
+              <p className="sheet-placeholder">
+                Contact information coming soon
+              </p>
             </div>
           </div>
         </div>

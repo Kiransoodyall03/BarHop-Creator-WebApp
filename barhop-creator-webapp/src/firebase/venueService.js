@@ -1,5 +1,16 @@
-import { getFirestore, doc, setDoc, collection, query, where, orderBy, getDocs } from "firebase/firestore";
-import { CLOUDINARY_CONFIG } from "../config/cloudinary";
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  collection,
+  query,
+  where,
+  orderBy,
+  getDocs,
+  deleteDoc,
+  updateDoc,
+} from 'firebase/firestore';
+import { CLOUDINARY_CONFIG } from '../config/cloudinary';
 
 const db = getFirestore();
 
@@ -71,35 +82,35 @@ export async function uploadVenueVideo(file, venueId) {
  * @returns {Promise<string>} - The created venue ID
  */
 export async function createVenue(venueData, ownerId) {
-  const venueRef = doc(collection(db, "venues"));
+  const venueRef = doc(collection(db, 'venues'));
   const venueId = venueRef.id;
-  
+
   const venueDoc = {
     placeId: venueId,
     ownerId: ownerId,
     name: venueData.name,
     address: venueData.address,
-    phone: venueData.phone || "",
-    website: venueData.website || "",
+    phone: venueData.phone || '',
+    website: venueData.website || '',
     category: venueData.category,
     description: venueData.description,
-    tagline: venueData.tagline || "",
+    tagline: venueData.tagline || '',
     images: venueData.images || [],
     video: venueData.video || null,
-    offers: venueData.offers?.filter(offer => offer.trim() !== "") || [],
+    offers: venueData.offers?.filter((offer) => offer.trim() !== '') || [],
     hours: venueData.hours || {
-      monday: { open: "", close: "", closed: false },
-      tuesday: { open: "", close: "", closed: false },
-      wednesday: { open: "", close: "", closed: false },
-      thursday: { open: "", close: "", closed: false },
-      friday: { open: "", close: "", closed: false },
-      saturday: { open: "", close: "", closed: false },
-      sunday: { open: "", close: "", closed: false },
+      monday: { open: '', close: '', closed: false },
+      tuesday: { open: '', close: '', closed: false },
+      wednesday: { open: '', close: '', closed: false },
+      thursday: { open: '', close: '', closed: false },
+      friday: { open: '', close: '', closed: false },
+      saturday: { open: '', close: '', closed: false },
+      sunday: { open: '', close: '', closed: false },
     },
     socialLinks: venueData.socialLinks || {
-      instagram: "",
-      facebook: "",
-      tiktok: "",
+      instagram: '',
+      facebook: '',
+      tiktok: '',
     },
     useCustomCard: true,
     published: false,
@@ -108,7 +119,7 @@ export async function createVenue(venueData, ownerId) {
   };
 
   await setDoc(venueRef, venueDoc);
-  
+
   return venueId;
 }
 
@@ -119,22 +130,32 @@ export async function createVenue(venueData, ownerId) {
  */
 export async function getVenuesByOwner(ownerId) {
   const db = getFirestore();
-  const venuesRef = collection(db, "venues");
+  const venuesRef = collection(db, 'venues');
   const q = query(
     venuesRef,
-    where("ownerId", "==", ownerId),
-    orderBy("createdAt", "desc")
+    where('ownerId', '==', ownerId),
+    orderBy('createdAt', 'desc')
   );
 
   const querySnapshot = await getDocs(q);
   const venues = [];
-  
+
   querySnapshot.forEach((doc) => {
     venues.push({
       id: doc.id,
-      ...doc.data()
+      ...doc.data(),
     });
   });
 
   return venues;
 }
+
+export const deleteVenue = async (venueId) => {
+  const db = getFirestore();
+  await deleteDoc(doc(db, 'venues', venueId));
+};
+
+export const updateVenue = async (venueId, data) => {
+  const db = getFirestore();
+  await updateDoc(doc(db, 'venues', venueId), data);
+};

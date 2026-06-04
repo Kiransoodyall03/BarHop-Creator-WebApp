@@ -1,11 +1,11 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import { createVenue, uploadVenueImages } from "../firebase/venueService";
-import Navbar from "../components/Navbar";
-import VenueCardPreview from "../components/VenueCardPreview";
-import "../styles/CreateVenue.css";
-import { useError } from "../context/ErrorContext";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { createVenue, uploadVenueImages } from '../firebase/venueService';
+import Navbar from '../components/Navbar';
+import VenueCardPreview from '../components/VenueCardPreview';
+import '../styles/CreateVenue.css';
+import { useError } from '../context/ErrorContext';
 
 function CreateVenue() {
   const { currentUser } = useAuth();
@@ -13,139 +13,147 @@ function CreateVenue() {
 
   const [currentStep, setCurrentStep] = useState(1);
   const [venueData, setVenueData] = useState({
-    title: "",
-    address: "",
+    title: '',
+    address: '',
     categories: [],
     images: [],
-    description: "",
+    description: '',
     hours: {
-      monday: { open: "", close: "", closed: false },
-      tuesday: { open: "", close: "", closed: false },
-      wednesday: { open: "", close: "", closed: false },
-      thursday: { open: "", close: "", closed: false },
-      friday: { open: "", close: "", closed: false },
-      saturday: { open: "", close: "", closed: false },
-      sunday: { open: "", close: "", closed: false },
+      monday: { open: '', close: '', closed: false },
+      tuesday: { open: '', close: '', closed: false },
+      wednesday: { open: '', close: '', closed: false },
+      thursday: { open: '', close: '', closed: false },
+      friday: { open: '', close: '', closed: false },
+      saturday: { open: '', close: '', closed: false },
+      sunday: { open: '', close: '', closed: false },
     },
   });
-  const { showError, showSuccess } = useError();
+
+  // Removed unused showSuccess here
+  const { showError } = useError();
   const [imageFiles, setImageFiles] = useState([]);
   const [videoFile, setVideoFile] = useState(null); // Add video state
   const [loading, setLoading] = useState(false);
 
   // Update venue data
   const updateVenueData = (field, value) => {
-    setVenueData(prev => ({
+    setVenueData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
   // Save draft
   const handleSaveDraft = async () => {
     try {
-      const { getFirestore, doc, setDoc } = await import("firebase/firestore");
+      const { getFirestore, doc, setDoc } = await import('firebase/firestore');
       const db = getFirestore();
-      
+
       const draftId = `draft_${currentUser.uid}_${Date.now()}`;
-      
-      await setDoc(doc(db, "venue_drafts", draftId), {
+
+      await setDoc(doc(db, 'venue_drafts', draftId), {
         ...venueData,
         name: venueData.title,
         ownerId: currentUser.uid,
         currentStep,
-        status: "draft",
+        status: 'draft',
         createdAt: new Date(),
         updatedAt: new Date(),
       });
-      
-      alert("✅ Draft saved successfully!");
+
+      alert('✅ Draft saved successfully!');
     } catch (error) {
-      showError("Failed to save draft. Please try again.");
+      showError('Failed to save draft. Please try again.');
     }
   };
 
   // Navigation
   const goToNextStep = () => {
     if (currentStep < 4) {
-      setCurrentStep(prev => prev + 1);
+      setCurrentStep((prev) => prev + 1);
     }
   };
 
   const goToPreviousStep = () => {
     if (currentStep > 1) {
-      setCurrentStep(prev => prev - 1);
+      setCurrentStep((prev) => prev - 1);
     }
   };
 
   // Final submission
   const handleSubmit = async () => {
     // Validation
-    if (!venueData.title || !venueData.address || venueData.categories.length === 0) {
-      showError("Please fill in all required fields (Title, Address, Category)");
+    if (
+      !venueData.title ||
+      !venueData.address ||
+      venueData.categories.length === 0
+    ) {
+      showError(
+        'Please fill in all required fields (Title, Address, Category)'
+      );
       return;
     }
 
     if (imageFiles.length === 0) {
-      showError("Please upload at least one image");
+      showError('Please upload at least one image');
       return;
     }
 
     if (!venueData.description) {
-      showError("Please add a description");
+      showError('Please add a description');
       return;
     }
 
     setLoading(true);
 
     try {
-      console.log("Creating venue...");
-      
+      console.log('Creating venue...');
+
       // Step 1: Create venue document in Firestore (without media URLs yet)
       const venueId = await createVenue(
         {
           ...venueData,
           name: venueData.title,
-          category: venueData.categories[0] || "", // Primary category
+          category: venueData.categories[0] || '', // Primary category
           images: [],
           video: null,
         },
         currentUser.uid
       );
 
-      console.log("Venue created with ID:", venueId);
+      console.log('Venue created with ID:', venueId);
 
       // Step 2: Upload images to Firebase Storage
       let imageUrls = [];
       if (imageFiles.length > 0) {
-        console.log("Uploading images...");
+        console.log('Uploading images...');
         imageUrls = await uploadVenueImages(imageFiles, venueId);
-        console.log("Images uploaded:", imageUrls);
+        console.log('Images uploaded:', imageUrls);
       }
 
       // Step 3: Upload video to Firebase Storage (if exists)
       let videoUrl = null;
       if (videoFile) {
-        console.log("Uploading video...");
-        const { uploadVenueVideo } = await import("../firebase/venueService");
+        console.log('Uploading video...');
+        const { uploadVenueVideo } = await import('../firebase/venueService');
         videoUrl = await uploadVenueVideo(videoFile, venueId);
-        console.log("Video uploaded:", videoUrl);
+        console.log('Video uploaded:', videoUrl);
       }
 
       // Step 4: Update venue document with media URLs
-      const { getFirestore, doc, updateDoc } = await import("firebase/firestore");
+      const { getFirestore, doc, updateDoc } =
+        await import('firebase/firestore');
       const db = getFirestore();
-      await updateDoc(doc(db, "venues", venueId), {
+      await updateDoc(doc(db, 'venues', venueId), {
         images: imageUrls,
         video: videoUrl,
         updatedAt: new Date(),
       });
 
-      console.log("Venue updated with media URLs");
+      console.log('Venue updated with media URLs');
 
-      alert("✅ Venue created successfully!");
-      navigate("/dashboard");
-      
+      alert('✅ Venue created successfully!');
+      navigate('/dashboard');
     } catch (error) {
       showError(`Failed to create venue: ${error.message}`);
     } finally {
@@ -167,7 +175,7 @@ function CreateVenue() {
           {/* Header with Progress and Save Draft */}
           <div className="form-header">
             <div className="progress-steps">
-              {[1, 2, 3, 4].map(step => (
+              {[1, 2, 3, 4].map((step) => (
                 <div
                   key={step}
                   className={`progress-step ${currentStep >= step ? 'active' : ''}`}
@@ -197,7 +205,6 @@ function CreateVenue() {
 
             {currentStep === 3 && (
               <Step3Images
-                venueData={venueData}
                 updateVenueData={updateVenueData}
                 imageFiles={imageFiles}
                 setImageFiles={setImageFiles}
@@ -226,12 +233,12 @@ function CreateVenue() {
                 Next
               </button>
             ) : (
-              <button 
-                className="done-btn" 
+              <button
+                className="done-btn"
                 onClick={handleSubmit}
                 disabled={loading}
               >
-                {loading ? "Creating Venue..." : "Done"}
+                {loading ? 'Creating Venue...' : 'Done'}
               </button>
             )}
           </div>
@@ -272,35 +279,38 @@ function Step1TitleAddress({ venueData, updateVenueData }) {
     </div>
   );
 }
-  const VENUE_CATEGORIES = [
-    "bar",
-    "club",
-    "restaurant",
-    "karaoke",
-    "lounge",
-    "rooftop",
-    "sports bar",
-    "brewery",
-    "wine bar",
-    "cocktail bar",
-    "pub",
-    "other"
-  ];
+const VENUE_CATEGORIES = [
+  'bar',
+  'club',
+  'restaurant',
+  'karaoke',
+  'lounge',
+  'rooftop',
+  'sports bar',
+  'brewery',
+  'wine bar',
+  'cocktail bar',
+  'pub',
+  'other',
+];
 function Step2Category({ venueData, updateVenueData }) {
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Filter categories based on search
-  const filteredCategories = VENUE_CATEGORIES.filter(cat =>
+  const filteredCategories = VENUE_CATEGORIES.filter((cat) =>
     cat.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleCategorySelect = (category) => {
     const currentCategories = venueData.categories || [];
-    
+
     // If already selected, remove it
     if (currentCategories.includes(category)) {
-      updateVenueData('categories', currentCategories.filter(c => c !== category));
-    } 
+      updateVenueData(
+        'categories',
+        currentCategories.filter((c) => c !== category)
+      );
+    }
     // If not selected and less than 3, add it
     else if (currentCategories.length < 3) {
       updateVenueData('categories', [...currentCategories, category]);
@@ -358,9 +368,18 @@ function Step2Category({ venueData, updateVenueData }) {
   );
 }
 
-function Step3Images({ venueData, updateVenueData, imageFiles, setImageFiles, videoFile, setVideoFile }) {
-  const [videoPreview, setVideoPreview] = useState(videoFile ? URL.createObjectURL(videoFile) : null);
-  const [uploadError, setUploadError] = useState("");
+// Removed venueData from the props here since it wasn't being used
+function Step3Images({
+  updateVenueData,
+  imageFiles,
+  setImageFiles,
+  videoFile,
+  setVideoFile,
+}) {
+  const [videoPreview, setVideoPreview] = useState(
+    videoFile ? URL.createObjectURL(videoFile) : null
+  );
+  const [uploadError, setUploadError] = useState('');
 
   // Validate video
   const validateVideo = async (file) => {
@@ -368,29 +387,33 @@ function Step3Images({ venueData, updateVenueData, imageFiles, setImageFiles, vi
       const video = document.createElement('video');
       video.preload = 'metadata';
 
-      video.onloadedmetadata = function() {
+      video.onloadedmetadata = function () {
         window.URL.revokeObjectURL(video.src);
-        
+
         const duration = video.duration;
         const width = video.videoWidth;
         const height = video.videoHeight;
 
         // Check duration (7 seconds max)
         if (duration > 7) {
-          reject(`Video is too long (${Math.round(duration)}s). Maximum is 7 seconds.`);
+          reject(
+            `Video is too long (${Math.round(duration)}s). Maximum is 7 seconds.`
+          );
           return;
         }
 
         // Check resolution (1080p max)
         if (width > 1920 || height > 1080) {
-          reject(`Video resolution too high (${width}x${height}). Maximum is 1920x1080.`);
+          reject(
+            `Video resolution too high (${width}x${height}). Maximum is 1920x1080.`
+          );
           return;
         }
 
         resolve(true);
       };
 
-      video.onerror = function() {
+      video.onerror = function () {
         reject('Invalid video file');
       };
 
@@ -401,19 +424,21 @@ function Step3Images({ venueData, updateVenueData, imageFiles, setImageFiles, vi
   // Handle image upload
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
-    setUploadError("");
+    setUploadError('');
 
     // Limit total images to 3 (since we have 1 slot for video)
     const remainingSlots = 3 - imageFiles.length;
     const filesToAdd = files.slice(0, remainingSlots);
 
     if (files.length > remainingSlots) {
-      setUploadError(`Only ${remainingSlots} more image(s) can be added (max 3 images total)`);
+      setUploadError(
+        `Only ${remainingSlots} more image(s) can be added (max 3 images total)`
+      );
     }
 
     // Create preview URLs
     const newImageFiles = [...imageFiles, ...filesToAdd];
-    const imageUrls = newImageFiles.map(file => URL.createObjectURL(file));
+    const imageUrls = newImageFiles.map((file) => URL.createObjectURL(file));
 
     setImageFiles(newImageFiles);
     updateVenueData('images', imageUrls);
@@ -424,7 +449,7 @@ function Step3Images({ venueData, updateVenueData, imageFiles, setImageFiles, vi
     const file = e.target.files[0];
     if (!file) return;
 
-    setUploadError("");
+    setUploadError('');
 
     try {
       // Validate video
@@ -436,15 +461,15 @@ function Step3Images({ venueData, updateVenueData, imageFiles, setImageFiles, vi
       setVideoPreview(videoUrl);
     } catch (error) {
       setUploadError(error);
-      e.target.value = ""; // Reset input
+      e.target.value = ''; // Reset input
     }
   };
 
   // Remove image
   const removeImage = (index) => {
     const newImageFiles = imageFiles.filter((_, i) => i !== index);
-    const imageUrls = newImageFiles.map(file => URL.createObjectURL(file));
-    
+    const imageUrls = newImageFiles.map((file) => URL.createObjectURL(file));
+
     setImageFiles(newImageFiles);
     updateVenueData('images', imageUrls);
   };
@@ -453,18 +478,14 @@ function Step3Images({ venueData, updateVenueData, imageFiles, setImageFiles, vi
   const removeVideo = () => {
     setVideoFile(null);
     setVideoPreview(null);
-    setUploadError("");
+    setUploadError('');
   };
 
   return (
     <div className="step-container">
       <h1 className="step-title">Add Images/Videos To Your Card:</h1>
 
-      {uploadError && (
-        <div className="upload-error">
-          ⚠️ {uploadError}
-        </div>
-      )}
+      {uploadError && <div className="upload-error">⚠️ {uploadError}</div>}
 
       {/* Upload Grid */}
       <div className="upload-grid">
@@ -473,12 +494,12 @@ function Step3Images({ venueData, updateVenueData, imageFiles, setImageFiles, vi
           <div key={`image-${index}`} className="upload-slot">
             {imageFiles[index] ? (
               <div className="upload-preview">
-                <img 
-                  src={URL.createObjectURL(imageFiles[index])} 
+                <img
+                  src={URL.createObjectURL(imageFiles[index])}
                   alt={`Upload ${index + 1}`}
                   className="preview-image"
                 />
-                <button 
+                <button
                   className="remove-upload-btn"
                   onClick={() => removeImage(index)}
                 >
@@ -487,7 +508,10 @@ function Step3Images({ venueData, updateVenueData, imageFiles, setImageFiles, vi
                 <span className="upload-label">*Image</span>
               </div>
             ) : (
-              <label className="upload-placeholder" htmlFor={`image-upload-${index}`}>
+              <label
+                className="upload-placeholder"
+                htmlFor={`image-upload-${index}`}
+              >
                 <div className="upload-icon">+</div>
                 <span className="upload-text">*Image</span>
                 <input
@@ -507,16 +531,13 @@ function Step3Images({ venueData, updateVenueData, imageFiles, setImageFiles, vi
         <div className="upload-slot">
           {videoPreview ? (
             <div className="upload-preview">
-              <video 
-                src={videoPreview} 
+              <video
+                src={videoPreview}
                 className="preview-video"
                 controls
                 muted
               />
-              <button 
-                className="remove-upload-btn"
-                onClick={removeVideo}
-              >
+              <button className="remove-upload-btn" onClick={removeVideo}>
                 ✕
               </button>
               <span className="upload-label">*Video</span>
@@ -546,10 +567,18 @@ function Step3Images({ venueData, updateVenueData, imageFiles, setImageFiles, vi
 }
 
 function Step4DescriptionHours({ venueData, updateVenueData }) {
-  const [description, setDescription] = useState(venueData.description || "");
+  const [description, setDescription] = useState(venueData.description || '');
   const maxChars = 500;
 
-  const daysOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+  const daysOfWeek = [
+    'sunday',
+    'monday',
+    'tuesday',
+    'wednesday',
+    'thursday',
+    'friday',
+    'saturday',
+  ];
 
   // Generate time options from 6 AM to 3 AM (next day)
   const generateTimeOptions = () => {
@@ -592,8 +621,8 @@ function Step4DescriptionHours({ venueData, updateVenueData }) {
       ...venueData.hours,
       [day]: {
         ...venueData.hours[day],
-        [field]: value
-      }
+        [field]: value,
+      },
     };
     updateVenueData('hours', newHours);
   };
@@ -601,16 +630,16 @@ function Step4DescriptionHours({ venueData, updateVenueData }) {
   const copyToAllDays = () => {
     const templateDay = venueData.hours.monday;
     const newHours = {};
-    daysOfWeek.forEach(day => {
+    daysOfWeek.forEach((day) => {
       newHours[day] = { ...templateDay };
     });
     updateVenueData('hours', newHours);
   };
 
   const setWeekdayHours = () => {
-    const weekdayTemplate = { open: "17:00", close: "02:00", closed: false }; // 5 PM - 2 AM
-    const weekendTemplate = { open: "14:00", close: "03:00", closed: false }; // 2 PM - 3 AM
-    
+    const weekdayTemplate = { open: '17:00', close: '02:00', closed: false }; // 5 PM - 2 AM
+    const weekendTemplate = { open: '14:00', close: '03:00', closed: false }; // 2 PM - 3 AM
+
     const newHours = {
       monday: weekdayTemplate,
       tuesday: weekdayTemplate,
@@ -618,7 +647,7 @@ function Step4DescriptionHours({ venueData, updateVenueData }) {
       thursday: weekdayTemplate,
       friday: weekendTemplate,
       saturday: weekendTemplate,
-      sunday: { open: "14:00", close: "00:00", closed: false }, // 2 PM - 12 AM
+      sunday: { open: '14:00', close: '00:00', closed: false }, // 2 PM - 12 AM
     };
     updateVenueData('hours', newHours);
   };
@@ -645,13 +674,21 @@ function Step4DescriptionHours({ venueData, updateVenueData }) {
       {/* Opening Hours */}
       <div className="form-group">
         <label className="form-label-inline">Opening times:</label>
-        
+
         {/* Quick Actions */}
         <div className="hours-quick-actions">
-          <button type="button" className="quick-action-btn" onClick={copyToAllDays}>
+          <button
+            type="button"
+            className="quick-action-btn"
+            onClick={copyToAllDays}
+          >
             Copy Monday to All Days
           </button>
-          <button type="button" className="quick-action-btn" onClick={setWeekdayHours}>
+          <button
+            type="button"
+            className="quick-action-btn"
+            onClick={setWeekdayHours}
+          >
             Set Typical Hours
           </button>
         </div>
@@ -669,7 +706,9 @@ function Step4DescriptionHours({ venueData, updateVenueData }) {
                   <input
                     type="checkbox"
                     checked={venueData.hours[day].closed}
-                    onChange={(e) => handleHoursChange(day, 'closed', e.target.checked)}
+                    onChange={(e) =>
+                      handleHoursChange(day, 'closed', e.target.checked)
+                    }
                   />
                   <span>Closed</span>
                 </label>
@@ -679,10 +718,12 @@ function Step4DescriptionHours({ venueData, updateVenueData }) {
                     <select
                       className="time-select"
                       value={venueData.hours[day].open}
-                      onChange={(e) => handleHoursChange(day, 'open', e.target.value)}
+                      onChange={(e) =>
+                        handleHoursChange(day, 'open', e.target.value)
+                      }
                     >
                       <option value="">Opens</option>
-                      {timeOptions.map(time => (
+                      {timeOptions.map((time) => (
                         <option key={time.value} value={time.value}>
                           {time.label}
                         </option>
@@ -694,10 +735,12 @@ function Step4DescriptionHours({ venueData, updateVenueData }) {
                     <select
                       className="time-select"
                       value={venueData.hours[day].close}
-                      onChange={(e) => handleHoursChange(day, 'close', e.target.value)}
+                      onChange={(e) =>
+                        handleHoursChange(day, 'close', e.target.value)
+                      }
                     >
                       <option value="">Closes</option>
-                      {timeOptions.map(time => (
+                      {timeOptions.map((time) => (
                         <option key={time.value} value={time.value}>
                           {time.label}
                         </option>

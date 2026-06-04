@@ -6,15 +6,13 @@
     "@cloudinary/react": "^1.14.4",
     "@cloudinary/url-gen": "^1.22.0",
     "@testing-library/dom": "^10.4.1",
-    "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.2",
-    "@testing-library/user-event": "^13.5.0",
     "firebase": "^12.10.0",
+    "firebase-cli": "^1.2.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-firebase-hooks": "^5.1.1",
     "react-google-button": "^0.8.0",
-    "react-router-dom": "^7.13.1",
+    "react-router-dom": "^7.16.0",
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4"
   },
@@ -22,7 +20,10 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "lint": "eslint src/**/*.js",
+    "format": "prettier --write \"src/**/*.{js,jsx,css,json}\"",
+    "test:coverage": "react-scripts test --coverage --watchAll=false"
   },
   "eslintConfig": {
     "extends": [
@@ -41,5 +42,15 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "prettier": "^3.8.3"
   }
 }

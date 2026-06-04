@@ -18,7 +18,7 @@
   top: 0;
   width: 100%;
   z-index: 100;
-  background: linear-gradient(to bottom, rgba(13,13,13,0.95), transparent);
+  background: linear-gradient(to bottom, rgba(13, 13, 13, 0.95), transparent);
   backdrop-filter: blur(8px);
 }
 
@@ -87,7 +87,8 @@
   flex-direction: column;
   justify-content: center;
   align-items: flex-start;
-  padding: clamp(6rem, 15vh, 10rem) clamp(1.5rem, 4vw, 2.5rem) clamp(3rem, 8vh, 5rem);
+  padding: clamp(6rem, 15vh, 10rem) clamp(1.5rem, 4vw, 2.5rem)
+    clamp(3rem, 8vh, 5rem);
   max-width: min(var(--max-width), 100%);
   margin: 0 auto;
   width: 100%;
@@ -146,7 +147,11 @@
   right: clamp(-300px, -20vw, -200px);
   width: clamp(400px, 50vw, 600px);
   height: clamp(400px, 50vw, 600px);
-  background: radial-gradient(circle, rgba(245,166,35,0.08) 0%, transparent 70%);
+  background: radial-gradient(
+    circle,
+    rgba(245, 166, 35, 0.08) 0%,
+    transparent 70%
+  );
   pointer-events: none;
   z-index: 0;
   opacity: 0.7;

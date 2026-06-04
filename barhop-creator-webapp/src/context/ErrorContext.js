@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
 
 const ErrorContext = createContext();
 
@@ -13,20 +13,15 @@ export const useError = () => {
 export const ErrorProvider = ({ children }) => {
   const [errors, setErrors] = useState([]);
 
-  const showError = (message, type = 'error') => {
+  const showError = useCallback((message, type = 'error') => {
     const id = Date.now();
     const newError = { id, message, type };
-    
-    setErrors(prev => [...prev, newError]);
 
-    // Auto-remove after 5 seconds
-    setTimeout(() => {
-      removeError(id);
-    }, 5000);
-  };
+    setErrors((prev) => [...prev, newError]);
+  }, []);
 
   const removeError = (id) => {
-    setErrors(prev => prev.filter(error => error.id !== id));
+    setErrors((prev) => prev.filter((error) => error.id !== id));
   };
 
   const showSuccess = (message) => {
@@ -52,8 +47,8 @@ function ErrorToast({ errors, removeError }) {
   return (
     <div className="toast-container">
       {errors.map((error) => (
-        <div 
-          key={error.id} 
+        <div
+          key={error.id}
           className={`toast toast-${error.type}`}
           onClick={() => removeError(error.id)}
         >
@@ -63,7 +58,7 @@ function ErrorToast({ errors, removeError }) {
             {error.type === 'warning' && '⚠️'}
           </div>
           <div className="toast-message">{error.message}</div>
-          <button 
+          <button
             className="toast-close"
             onClick={(e) => {
               e.stopPropagation();

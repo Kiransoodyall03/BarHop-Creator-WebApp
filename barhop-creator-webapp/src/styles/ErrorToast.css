@@ -39,12 +39,12 @@
 }
 
 .toast-success {
-  border-left-color: #4CAF50;
+  border-left-color: #4caf50;
   background: #e8f5e9;
 }
 
 .toast-warning {
-  border-left-color: #FFA726;
+  border-left-color: #ffa726;
   background: #fff3e0;
 }
 

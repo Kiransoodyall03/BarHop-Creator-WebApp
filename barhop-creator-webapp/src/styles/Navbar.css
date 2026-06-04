@@ -53,14 +53,16 @@
   font-weight: 500;
   color: var(--color-muted);
   text-decoration: none;
-  transition: color var(--transition), background var(--transition);
+  transition:
+    color var(--transition),
+    background var(--transition);
   white-space: nowrap;
   flex-shrink: 0;
 }
 
 .navbar__link:hover {
   color: var(--color-text);
-  background: rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.05);
   opacity: 1;
 }
 
@@ -191,7 +193,7 @@
 
 .drawer__link:hover {
   color: var(--color-text);
-  background: rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.05);
   opacity: 1;
 }
 
@@ -220,13 +222,13 @@
 }
 
 @keyframes slideDown {
-  from { 
-    opacity: 0; 
-    transform: translateY(-8px); 
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
   }
-  to { 
-    opacity: 1; 
-    transform: translateY(0); 
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 

@@ -1,12 +1,12 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
-import { onAuthChange } from "../firebase/authService";
-import { getUserDocument } from "../firebase/userService";
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { onAuthChange } from '../firebase/authService';
+import { getUserDocument } from '../firebase/userService';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
-  const [loading, setLoading]         = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const unsubscribe = onAuthChange(async (fbUser) => {

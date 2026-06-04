@@ -8,7 +8,8 @@
   background: #1a1a1a;
   border-radius: clamp(16px, 2.5vw, 20px);
   overflow: hidden;
-  box-shadow: 0 clamp(8px, 1.5vw, 12px) clamp(24px, 4vw, 32px) rgba(0, 0, 0, 0.5);
+  box-shadow: 0 clamp(8px, 1.5vw, 12px) clamp(24px, 4vw, 32px)
+    rgba(0, 0, 0, 0.5);
   position: sticky;
   top: clamp(20px, 5vh, 40px);
   max-width: 100%;
@@ -142,7 +143,7 @@
 }
 
 .status-badge.open {
-  background: #4CAF50;
+  background: #4caf50;
   color: #fff;
 }
 
@@ -326,31 +327,30 @@
     display: none;
   }
 }
-  /* Bottom Sheet */
-  .card-bottom-sheet {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: transparent; /* Fully transparent background */
-    transform: translateY(calc(100% - 40px));
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    will-change: transform;
-    z-index: 20;
-    max-height: 80%;
-    display: flex;
-    flex-direction: column;
-    pointer-events: none; /* Allow clicks to pass through transparent areas */
-  }
+/* Bottom Sheet */
+.card-bottom-sheet {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: transparent; /* Fully transparent background */
+  transform: translateY(calc(100% - 40px));
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+  z-index: 20;
+  max-height: 80%;
+  display: flex;
+  flex-direction: column;
+  pointer-events: none; /* Allow clicks to pass through transparent areas */
+}
 
-  .card-bottom-sheet > * {
-    pointer-events: auto; /* Re-enable clicks on actual content */
-  }
+.card-bottom-sheet > * {
+  pointer-events: auto; /* Re-enable clicks on actual content */
+}
 
-  .card-bottom-sheet.open {
-    transform: translateY(0);
-  }
-
+.card-bottom-sheet.open {
+  transform: translateY(0);
+}
 
 /* Drag Handle - Updated positioning */
 .card-drag-handle {
@@ -447,7 +447,7 @@
 .sheet-title {
   font-size: clamp(20px, 3vw, 24px);
   font-weight: bold;
-  color: #FFA726;
+  color: #ffa726;
   margin: 0 0 clamp(16px, 2.5vh, 20px) 0;
 }
 
@@ -504,7 +504,7 @@ body.dragging {
   .card-bottom-sheet {
     transition: none;
   }
-  
+
   .indicator-handle-bar {
     transition: none;
   }
