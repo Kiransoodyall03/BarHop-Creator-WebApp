@@ -9,17 +9,17 @@ import {
   getDocs,
   deleteDoc,
   updateDoc,
+  addDoc,
+  Timestamp,
 } from 'firebase/firestore';
 import { CLOUDINARY_CONFIG } from '../config/cloudinary';
 
 const db = getFirestore();
 
-/**
- * Upload images to Cloudinary
- * @param {File[]} files - Array of image files
- * @param {string} venueId - Venue ID for folder structure
- * @returns {Promise<string[]>} - Array of download URLs
- */
+// ==============================
+//  MEDIA UPLOADS
+// ==============================
+
 export async function uploadVenueImages(files, venueId) {
   const uploadPromises = files.map(async (file) => {
     const formData = new FormData();
@@ -29,64 +29,27 @@ export async function uploadVenueImages(files, venueId) {
 
     const response = await fetch(
       `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/image/upload`,
-      {
-        method: 'POST',
-        body: formData,
-      }
+      { method: 'POST', body: formData }
     );
 
-    if (!response.ok) {
-      throw new Error('Failed to upload image to Cloudinary');
-    }
-
+    if (!response.ok) throw new Error('Failed to upload image to Cloudinary');
     const data = await response.json();
-    return data.secure_url; // HTTPS URL
+    return data.secure_url;
   });
-
   return Promise.all(uploadPromises);
 }
 
-/**
- * Upload video to Cloudinary
- * @param {File} file - Video file
- * @param {string} venueId - Venue ID for folder structure
- * @returns {Promise<string>} - Download URL
- */
-export async function uploadVenueVideo(file, venueId) {
-  const formData = new FormData();
-  formData.append('file', file);
-  formData.append('upload_preset', CLOUDINARY_CONFIG.uploadPreset);
-  formData.append('folder', `venues/${venueId}/video`);
-  formData.append('resource_type', 'video');
+// ==============================
+//  VENUE CORE OPERATIONS
+// ==============================
 
-  const response = await fetch(
-    `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/video/upload`,
-    {
-      method: 'POST',
-      body: formData,
-    }
-  );
-
-  if (!response.ok) {
-    throw new Error('Failed to upload video to Cloudinary');
-  }
-
-  const data = await response.json();
-  return data.secure_url;
-}
-
-/**
- * Create a new venue in Firestore
- * @param {Object} venueData - Venue information
- * @param {string} ownerId - User ID of the venue owner
- * @returns {Promise<string>} - The created venue ID
- */
 export async function createVenue(venueData, ownerId) {
   const venueRef = doc(collection(db, 'venues'));
   const venueId = venueRef.id;
 
   const venueDoc = {
-    placeId: venueId,
+    id: venueId,
+    placeId: venueData.placeId || '',
     ownerId: ownerId,
     name: venueData.name,
     address: venueData.address,
@@ -94,68 +57,104 @@ export async function createVenue(venueData, ownerId) {
     website: venueData.website || '',
     category: venueData.category,
     description: venueData.description,
-    tagline: venueData.tagline || '',
     images: venueData.images || [],
-    video: venueData.video || null,
-    offers: venueData.offers?.filter((offer) => offer.trim() !== '') || [],
-    hours: venueData.hours || {
-      monday: { open: '', close: '', closed: false },
-      tuesday: { open: '', close: '', closed: false },
-      wednesday: { open: '', close: '', closed: false },
-      thursday: { open: '', close: '', closed: false },
-      friday: { open: '', close: '', closed: false },
-      saturday: { open: '', close: '', closed: false },
-      sunday: { open: '', close: '', closed: false },
-    },
+    hours: venueData.hours || {},
     socialLinks: venueData.socialLinks || {
       instagram: '',
       facebook: '',
       tiktok: '',
     },
-    useCustomCard: true,
+    subscriptionTier: 'trial', // Default B2B SaaS tier
     published: false,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: Timestamp.now(),
+    updatedAt: Timestamp.now(),
   };
 
   await setDoc(venueRef, venueDoc);
-
   return venueId;
 }
 
-/**
- * Get all venues for a specific owner
- * @param {string} ownerId - User ID of the venue owner
- * @returns {Promise<Array>} - Array of venue objects
- */
 export async function getVenuesByOwner(ownerId) {
-  const db = getFirestore();
   const venuesRef = collection(db, 'venues');
   const q = query(
     venuesRef,
     where('ownerId', '==', ownerId),
     orderBy('createdAt', 'desc')
   );
-
   const querySnapshot = await getDocs(q);
-  const venues = [];
 
-  querySnapshot.forEach((doc) => {
-    venues.push({
-      id: doc.id,
-      ...doc.data(),
-    });
-  });
-
-  return venues;
+  return querySnapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }));
 }
 
+export const updateVenue = async (venueId, data) => {
+  const venueRef = doc(db, 'venues', venueId);
+  await updateDoc(venueRef, { ...data, updatedAt: Timestamp.now() });
+};
+
 export const deleteVenue = async (venueId) => {
-  const db = getFirestore();
   await deleteDoc(doc(db, 'venues', venueId));
 };
 
-export const updateVenue = async (venueId, data) => {
-  const db = getFirestore();
-  await updateDoc(doc(db, 'venues', venueId), data);
-};
+// ==============================
+//  B2B OPERATIONS: VIP RESERVATIONS
+// ==============================
+
+export async function getTonightReservations(venueId) {
+  // In a real app, you would query by today's date bounds.
+  // For now, we fetch recent reservations ordered by date.
+  const reservationsRef = collection(db, `venues/${venueId}/reservations`);
+  const q = query(reservationsRef, orderBy('reservationDate', 'asc'));
+  const querySnapshot = await getDocs(q);
+
+  return querySnapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+    reservationDate: doc.data().reservationDate?.toDate(),
+  }));
+}
+
+export async function createReservation(venueId, reservationData) {
+  const reservationsRef = collection(db, `venues/${venueId}/reservations`);
+  const newRes = {
+    ...reservationData,
+    venueId,
+    status: reservationData.status || 'Pending',
+    createdAt: Timestamp.now(),
+  };
+  const docRef = await addDoc(reservationsRef, newRes);
+  return docRef.id;
+}
+
+// ==============================
+//  B2B OPERATIONS: STAFF & PAYOUTS
+// ==============================
+
+export async function getVenueStaff(venueId) {
+  const staffRef = collection(db, `venues/${venueId}/staff`);
+  const q = query(staffRef, where('status', '==', 'Active'));
+  const querySnapshot = await getDocs(q);
+
+  return querySnapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }));
+}
+
+// ==============================
+//  B2B OPERATIONS: REVENUE ANALYTICS
+// ==============================
+
+export async function getRevenueAnalytics(venueId) {
+  const analyticsRef = collection(db, `venues/${venueId}/analytics`);
+  const q = query(analyticsRef, orderBy('date', 'desc')); // Add limits/bounds as needed
+  const querySnapshot = await getDocs(q);
+
+  return querySnapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+    date: doc.data().date?.toDate(),
+  }));
+}

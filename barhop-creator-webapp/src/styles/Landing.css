@@ -1,5 +1,5 @@
 /* ==============================
-   LANDING PAGE STYLES
+   LANDING PAGE STYLES (B2B SaaS)
    ============================== */
 
 .landing {
@@ -140,23 +140,6 @@
   flex-wrap: wrap;
 }
 
-/* --- Background glow --- */
-.landing__glow {
-  position: fixed;
-  top: clamp(-300px, -20vw, -200px);
-  right: clamp(-300px, -20vw, -200px);
-  width: clamp(400px, 50vw, 600px);
-  height: clamp(400px, 50vw, 600px);
-  background: radial-gradient(
-    circle,
-    rgba(245, 166, 35, 0.08) 0%,
-    transparent 70%
-  );
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.7;
-}
-
 /* --- Features strip --- */
 .landing__features {
   display: flex;
@@ -287,10 +270,6 @@
     width: 100%;
     justify-content: center;
   }
-
-  .landing__glow {
-    opacity: 0.4;
-  }
 }
 
 /* Reduced Motion Support */
@@ -299,7 +278,8 @@
   .landing__headline,
   .landing__sub,
   .landing__cta,
-  .feature {
+  .feature,
+  .landing__hero-visual {
     animation: none;
     opacity: 1;
   }
@@ -307,4 +287,23 @@
   .btn--primary:hover {
     transform: none;
   }
+}
+
+/* --- Hero Visual --- */
+.landing__hero-visual {
+  margin-top: clamp(3rem, 6vh, 5rem);
+  width: 100%;
+  max-width: 1000px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--color-border);
+  opacity: 0;
+  animation: fadeUp 0.6s ease 0.7s forwards;
+}
+
+.hero-dashboard-img {
+  width: 100%;
+  height: auto;
+  display: block;
 }

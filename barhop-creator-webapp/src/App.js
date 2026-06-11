@@ -16,6 +16,7 @@ import CreateVenue from './pages/CreateVenue';
 import Preview from './pages/Preview';
 import './App.css';
 import './styles/ErrorToast.css';
+import DashboardLayout from './components/DashboardLayout';
 
 function PublicRoute({ children }) {
   const { currentUser } = useAuth();
@@ -34,6 +35,7 @@ function App() {
         <AuthProvider>
           <Router>
             <Routes>
+              {/* Public Routes */}
               <Route path="/" element={<Landing />} />
               <Route
                 path="/register"
@@ -51,30 +53,21 @@ function App() {
                   </PublicRoute>
                 }
               />
+
+              {/* Wrapped Dashboard Routes */}
               <Route
-                path="/dashboard"
                 element={
                   <PrivateRoute>
-                    <Dashboard />
+                    <DashboardLayout />
                   </PrivateRoute>
                 }
-              />
-              <Route
-                path="/venue/create"
-                element={
-                  <PrivateRoute>
-                    <CreateVenue />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/venue/preview"
-                element={
-                  <PrivateRoute>
-                    <Preview />
-                  </PrivateRoute>
-                }
-              />
+              >
+                {/* Every route inside here will have the Sidebar locked on the left! */}
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/venue/create" element={<CreateVenue />} />
+                <Route path="/venue/edit/:id" element={<CreateVenue />} />
+                <Route path="/venue/preview/:id" element={<Preview />} />
+              </Route>
             </Routes>
           </Router>
         </AuthProvider>

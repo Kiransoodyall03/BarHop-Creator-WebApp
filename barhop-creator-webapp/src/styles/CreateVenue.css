@@ -1,29 +1,61 @@
+/* ==============================
+   CREATE VENUE PAGE STYLES
+   Aligned to B2B Dashboard aesthetic
+   ============================== */
+
 .create-venue-page {
   display: flex;
-  min-height: calc(100vh - 60px);
-  background: #2a2a2a;
-  gap: clamp(20px, 5vw, 60px);
-  padding: clamp(15px, 4vw, 60px);
+  height: 100vh; /* Changed from 100% to ensure it fills the viewport height */
+  background: transparent;
+  gap: clamp(20px, 4vw, 40px);
+  padding: 0;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial,
+    sans-serif;
+  color: #e5e5e5;
+  box-sizing: border-box; /* Ensure padding doesn't cause overflow */
 }
 
 .preview-section {
-  flex: 0 0 min(450px, 40vw);
+  flex: 0 0 min(400px, 35vw);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  position: sticky;
+  top: 0;
+  height: fit-content; /* Ensure sticky works correctly */
+  padding-top: 2rem; /* Add a little space at the top */
 }
 
+/* Form section becomes a dashboard-style data panel */
 .form-section {
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-width: 0; /* Prevent flex overflow */
+  min-width: 0;
+  background-color: #0f0f0f;
+  border: 1px solid #1f1f1f;
+  border-radius: 12px;
+  padding: 0;
+  overflow: hidden;
+  height: calc(
+    100vh - 4rem
+  ); /* Crucial: Fix height relative to viewport to enable internal scrolling */
+  margin-top: 2rem; /* Align with preview section padding */
+  margin-bottom: 2rem;
 }
 
+/* --- Form Header --- */
 .form-header {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   gap: 20px;
-  margin-bottom: clamp(40px, 8vh, 80px);
+  border-bottom: 1px solid #1f1f1f;
+  padding-bottom: 1.5rem;
+  /* Ensure header doesn't shrink */
+  flex-shrink: 0;
 }
 
 .progress-steps {
@@ -37,36 +69,53 @@
   flex: 1;
   max-width: 140px;
   height: clamp(4px, 0.5vh, 6px);
-  background: #444;
+  background: #222;
   border-radius: 3px;
   transition: background 0.3s;
 }
 
 .progress-step.active {
-  background: #fff;
+  background: #f5a623;
 }
 
 .save-draft-btn {
   padding: clamp(10px, 1.5vh, 14px) clamp(20px, 3vw, 32px);
-  background: #2196f3;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
+  background: transparent;
+  color: #e5e5e5;
+  border: 1px solid #444;
+  border-radius: 4px;
   font-size: clamp(14px, 1.8vw, 18px);
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: border-color 0.2s;
   white-space: nowrap;
+  font-family: inherit;
 }
 
 .save-draft-btn:hover {
-  background: #1976d2;
+  border-color: #666;
 }
 
+/* --- Step Content --- */
 .step-content {
   flex: 1;
   display: flex;
-  align-items: center;
+  align-items: flex-start; /* Changed from center to allow scrolling long content */
+  overflow-y: auto; /* Enable vertical scrolling here */
+  padding-top: 1rem; /* Add padding for visual spacing */
+  padding-bottom: 1rem;
+}
+
+/* Custom scrollbar for step content */
+.step-content::-webkit-scrollbar {
+  width: 8px;
+}
+.step-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+.step-content::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
 }
 
 .step-container {
@@ -74,35 +123,42 @@
 }
 
 .step-title {
-  font-size: clamp(28px, 6vw, 64px);
-  font-weight: bold;
-  color: #ffa726;
-  margin-bottom: clamp(30px, 6vh, 80px);
+  font-size: clamp(
+    24px,
+    4vw,
+    48px
+  ); /* Slightly reduced max size for better fit */
+  font-weight: 700;
+  color: #f5a623;
+  margin-bottom: clamp(20px, 4vh, 40px); /* Adjusted spacing */
   line-height: 1.2;
 }
 
+/* --- Inputs --- */
 .form-group {
   margin-bottom: clamp(20px, 4vh, 40px);
 }
 
 .form-input-large {
   width: 100%;
-  padding: clamp(16px, 2.5vh, 28px) clamp(20px, 3vw, 32px);
-  font-size: clamp(18px, 2.5vw, 28px);
+  padding: clamp(12px, 2vh, 20px) clamp(16px, 2.5vw, 24px); /* Slightly smaller padding */
+  font-size: clamp(16px, 2vw, 22px);
   background: transparent;
-  border: 2px solid #555;
-  border-radius: clamp(12px, 1.5vw, 16px);
-  color: #fff;
+  border: 1px solid #333;
+  border-radius: 6px;
+  color: #e5e5e5;
   transition: border-color 0.2s;
+  font-family: inherit;
+  box-sizing: border-box; /* Crucial for width: 100% */
 }
 
 .form-input-large::placeholder {
-  color: #666;
+  color: #555;
 }
 
 .form-input-large:focus {
   outline: none;
-  border-color: #ffa726;
+  border-color: #f5a623;
 }
 
 .input-with-icon {
@@ -115,73 +171,82 @@
   top: 50%;
   transform: translateY(-50%);
   font-size: clamp(20px, 2.5vw, 28px);
+  color: #888;
 }
 
 .form-input-large.with-icon {
   padding-left: clamp(50px, 7vw, 75px);
 }
 
+/* --- Navigation Buttons --- */
 .form-navigation {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   gap: clamp(12px, 2vw, 20px);
-  margin-top: clamp(40px, 6vh, 60px);
+  border-top: 1px solid #1f1f1f;
+  background-color: #0f0f0f; /* Match container background */
+  flex-shrink: 0; /* Ensure it stays at the bottom and doesn't shrink */
 }
 
 .back-btn {
-  padding: clamp(14px, 2vh, 20px) clamp(24px, 4vw, 48px);
-  background: #f44336;
-  color: #fff;
-  border: none;
-  border-radius: clamp(10px, 1.2vw, 12px);
-  font-size: clamp(16px, 2vw, 20px);
-  font-weight: 600;
+  padding: clamp(12px, 1.5vh, 16px) clamp(20px, 3vw, 40px);
+  background: transparent;
+  color: #e5e5e5;
+  border: 1px solid #444;
+  border-radius: 4px;
+  font-size: clamp(14px, 1.8vw, 18px);
+  font-weight: 500;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: border-color 0.2s;
   flex: 1 1 auto;
   min-width: max-content;
+  font-family: inherit;
 }
 
 .back-btn:hover {
-  background: #d32f2f;
+  border-color: #666;
 }
 
 .next-btn,
 .done-btn {
-  padding: clamp(14px, 2vh, 20px) clamp(32px, 5vw, 64px);
-  background: #ffa726;
-  color: #fff;
+  padding: clamp(12px, 1.5vh, 16px) clamp(24px, 4vw, 50px);
+  background: #f5a623;
+  color: #000;
   border: none;
-  border-radius: clamp(10px, 1.2vw, 12px);
-  font-size: clamp(16px, 2vw, 20px);
+  border-radius: 4px;
+  font-size: clamp(14px, 1.8vw, 18px);
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: opacity 0.2s;
   flex: 1 1 auto;
   min-width: max-content;
+  font-family: inherit;
 }
 
 .next-btn:hover,
 .done-btn:hover {
-  background: #ff9800;
+  opacity: 0.9;
 }
 
 .done-btn:disabled {
-  background: #666;
+  background: #1e1e1e;
+  color: #555;
+  border: 1px solid #333;
   cursor: not-allowed;
   position: relative;
+  opacity: 1;
 }
 
 .done-btn:disabled::after {
   content: '';
   position: absolute;
-  width: 20px;
-  height: 20px;
-  border: 3px solid #fff;
-  border-top-color: transparent;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-top-color: #f5a623;
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  animation: spin 1s ease-in-out infinite;
   right: 20px;
   top: 50%;
   transform: translateY(-50%);
@@ -193,30 +258,14 @@
   }
 }
 
-/* Category Step Styles */
-.category-search-container {
-  margin-bottom: clamp(20px, 4vh, 40px);
-}
-
-.category-search {
-  width: 100%;
-  max-width: min(600px, 90vw);
-  padding: clamp(14px, 2vh, 20px) clamp(20px, 3vw, 28px);
-  font-size: clamp(16px, 2vw, 20px);
-  background: transparent;
-  border: 2px solid #555;
-  border-radius: 50px;
-  color: #fff;
-  transition: border-color 0.2s;
-}
-
-.category-search::placeholder {
-  color: #666;
-}
-
-.category-search:focus {
-  outline: none;
-  border-color: #ffa726;
+/* --- Category Step --- */
+.category-counter {
+  color: #f5a623;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: clamp(20px, 3vh, 30px);
 }
 
 .category-grid {
@@ -229,42 +278,30 @@
 .category-button {
   padding: clamp(14px, 2vh, 20px) clamp(18px, 2.5vw, 24px);
   background: transparent;
-  color: #fff;
-  border: 2px solid #555;
-  border-radius: 50px;
+  color: #a0a0a0;
+  border: 1px solid #333;
+  border-radius: 6px;
   font-size: clamp(14px, 1.6vw, 16px);
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
   text-transform: capitalize;
+  font-family: inherit;
 }
 
 .category-button:hover {
-  border-color: #ffa726;
-  background: rgba(255, 167, 38, 0.1);
+  border-color: #f5a623;
+  color: #f5a623;
+  background: rgba(245, 166, 35, 0.05);
 }
 
 .category-button.selected {
-  background: #ffa726;
-  border-color: #ffa726;
-  color: #fff;
+  background: rgba(245, 166, 35, 0.1);
+  border-color: #f5a623;
+  color: #f5a623;
 }
 
-.no-results {
-  color: #999;
-  font-size: clamp(16px, 1.8vw, 18px);
-  margin-top: clamp(20px, 4vh, 40px);
-  text-align: center;
-}
-
-.category-counter {
-  color: #ffa726;
-  font-size: clamp(16px, 1.8vw, 18px);
-  font-weight: 600;
-  margin-bottom: clamp(20px, 3vh, 30px);
-}
-
-/* Upload Grid */
+/* --- Upload Grid --- */
 .upload-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr));
@@ -275,10 +312,15 @@
 
 .upload-slot {
   aspect-ratio: 3/4;
-  border-radius: clamp(12px, 1.5vw, 16px);
+  border-radius: 8px;
   overflow: hidden;
-  background: #1a1a1a;
-  border: 2px solid #444;
+  background: #080808;
+  border: 1px solid #222;
+  transition: border-color 0.2s;
+}
+
+.upload-slot:hover {
+  border-color: #444;
 }
 
 .upload-placeholder {
@@ -289,24 +331,23 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.2s;
 }
 
 .upload-placeholder:hover {
-  background: #2a2a2a;
-  border-color: #ffa726;
+  background: rgba(245, 166, 35, 0.04);
 }
 
 .upload-icon {
   font-size: clamp(36px, 5vw, 48px);
-  color: #666;
+  color: #444;
   margin-bottom: 12px;
 }
 
 .upload-text {
-  color: #999;
+  color: #888;
   font-size: clamp(13px, 1.6vw, 16px);
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .upload-preview {
@@ -315,8 +356,7 @@
   position: relative;
 }
 
-.preview-image,
-.preview-video {
+.preview-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -328,60 +368,42 @@
   right: 8px;
   width: clamp(28px, 3vw, 32px);
   height: clamp(28px, 3vw, 32px);
-  background: rgba(0, 0, 0, 0.7);
-  color: #fff;
-  border: none;
-  border-radius: 50%;
-  font-size: clamp(18px, 2vw, 20px);
+  background: rgba(8, 8, 8, 0.85);
+  color: #e5e5e5;
+  border: 1px solid #333;
+  border-radius: 4px;
+  font-size: clamp(14px, 1.5vw, 16px);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s;
+  transition: all 0.2s;
 }
 
 .remove-upload-btn:hover {
-  background: rgba(244, 67, 54, 0.9);
-}
-
-.upload-label {
-  position: absolute;
-  bottom: 8px;
-  left: 8px;
-  background: rgba(0, 0, 0, 0.7);
-  color: #fff;
-  padding: 4px 10px;
-  border-radius: 4px;
-  font-size: clamp(11px, 1.2vw, 12px);
-  font-weight: 600;
+  background: #f44336;
+  border-color: #f44336;
 }
 
 .upload-error {
-  background: #f44336;
-  color: #fff;
+  background: rgba(244, 67, 54, 0.08);
+  color: #f44336;
+  border: 1px solid rgba(244, 67, 54, 0.2);
   padding: clamp(12px, 1.5vh, 16px) clamp(16px, 2vw, 20px);
-  border-radius: 8px;
+  border-radius: 6px;
   margin-bottom: clamp(16px, 2.5vh, 24px);
   font-size: clamp(14px, 1.6vw, 16px);
 }
 
-.upload-requirements {
-  color: #999;
-  font-size: clamp(14px, 1.5vw, 15px);
-  line-height: 1.8;
-}
-
-.upload-requirements p {
-  margin: 4px 0;
-}
-
-/* Description & Hours Step */
+/* --- Description & Textarea --- */
 .form-label-inline {
   display: block;
-  font-size: clamp(16px, 2vw, 20px);
-  font-weight: 600;
-  color: #fff;
-  margin-bottom: clamp(12px, 1.5vh, 16px);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #888;
+  margin-bottom: clamp(8px, 1vh, 12px);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .form-textarea {
@@ -390,182 +412,30 @@
   padding: clamp(14px, 2vh, 20px);
   font-size: clamp(14px, 1.6vw, 16px);
   background: transparent;
-  border: 2px solid #555;
-  border-radius: clamp(10px, 1.2vw, 12px);
-  color: #fff;
+  border: 1px solid #333;
+  border-radius: 6px;
+  color: #e5e5e5;
   font-family: inherit;
   resize: vertical;
   min-height: clamp(120px, 15vh, 150px);
   transition: border-color 0.2s;
+  box-sizing: border-box;
 }
 
 .form-textarea::placeholder {
-  color: #666;
+  color: #555;
 }
-
 .form-textarea:focus {
   outline: none;
-  border-color: #ffa726;
+  border-color: #f5a623;
 }
 
-.char-counter {
-  color: #999;
-  font-size: clamp(12px, 1.4vw, 14px);
-  margin-top: 8px;
-  text-align: right;
-  max-width: min(700px, 100%);
-}
-
-/* Hours Section */
-.hours-quick-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: clamp(10px, 1.2vw, 12px);
-  margin-bottom: clamp(16px, 2.5vh, 24px);
-}
-
-.quick-action-btn {
-  padding: clamp(10px, 1.2vh, 12px) clamp(16px, 2vw, 20px);
-  background: #4caf50;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: clamp(12px, 1.4vw, 14px);
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-  white-space: nowrap;
-}
-
-.quick-action-btn:hover {
-  background: #45a049;
-}
-
-.hours-list {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: clamp(10px, 1.2vw, 12px);
-  padding: clamp(16px, 2vh, 20px);
-  max-width: min(800px, 100%);
-}
-
-.hours-row {
-  display: grid;
-  grid-template-columns: minmax(80px, auto) 1fr;
-  align-items: center;
-  gap: clamp(10px, 2vw, 20px);
-  padding: clamp(10px, 1.2vh, 12px) 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.hours-row:last-child {
-  border-bottom: none;
-}
-
-.day-name {
-  font-size: clamp(13px, 1.6vw, 16px);
-  font-weight: 600;
-  color: #fff;
-  text-transform: capitalize;
-}
-
-.hours-controls {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: clamp(8px, 1.2vw, 12px);
-}
-
-.closed-checkbox {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  color: #ccc;
-  font-size: clamp(12px, 1.4vw, 14px);
-  white-space: nowrap;
-}
-
-.closed-checkbox input[type='checkbox'] {
-  width: clamp(16px, 1.8vw, 18px);
-  height: clamp(16px, 1.8vw, 18px);
-  cursor: pointer;
-}
-
-.time-select {
-  padding: clamp(6px, 0.8vh, 8px) clamp(10px, 1.2vw, 12px);
-  background: #1a1a1a;
-  color: #fff;
-  border: 1px solid #555;
-  border-radius: 6px;
-  font-size: clamp(12px, 1.4vw, 14px);
-  cursor: pointer;
-  min-width: min(100px, 30vw);
-  flex: 1 1 auto;
-}
-
-.time-select:focus {
-  outline: none;
-  border-color: #ffa726;
-}
-
-.time-separator {
-  color: #666;
-  font-size: clamp(16px, 1.8vw, 18px);
-  font-weight: bold;
-}
-
-/* Container Query Support (Modern Browsers) */
-@supports (container-type: inline-size) {
-  .form-section {
-    container-type: inline-size;
-    container-name: form-section;
-  }
-
-  @container form-section (max-width: 700px) {
-    .step-title {
-      font-size: 36px;
-    }
-
-    .form-input-large {
-      font-size: 20px;
-    }
-
-    .category-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-
-    .upload-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-
-  @container form-section (max-width: 500px) {
-    .step-title {
-      font-size: 28px;
-    }
-
-    .form-input-large {
-      font-size: 18px;
-    }
-
-    .category-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .hours-quick-actions {
-      flex-direction: column;
-    }
-
-    .quick-action-btn {
-      width: 100%;
-    }
-  }
-}
-
-/* Only use media queries for layout changes */
+/* Responsive adjustments */
 @media (max-width: 900px) {
   .create-venue-page {
     flex-direction: column;
+    height: auto;
+    min-height: 100vh;
   }
 
   .preview-section {
@@ -573,20 +443,15 @@
     width: 100%;
     max-width: 450px;
     margin: 0 auto;
+    position: relative; /* Remove sticky on mobile */
   }
 
-  .form-navigation {
-    margin-left: 0;
+  .form-section {
+    height: auto; /* Let it grow naturally on mobile */
+    overflow: visible;
   }
 
-  .next-btn,
-  .done-btn {
-    margin-left: 0;
-  }
-}
-
-@media (max-width: 500px) {
-  .upload-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .step-content {
+    overflow-y: visible; /* Let parent scroll on mobile */
   }
 }

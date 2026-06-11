@@ -1,0 +1,62 @@
+/* ==============================
+   SIDEBAR STYLES (src/styles/Sidebar.css)
+   ============================== */
+
+.dashboard-sidebar {
+  width: 260px;
+  background-color: #121212;
+  border-right: 1px solid #222;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+}
+
+.sidebar-brand {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 3rem;
+  letter-spacing: 0.05em;
+}
+
+.sidebar-brand span {
+  color: #f5a623;
+  font-size: 0.8em;
+  vertical-align: top;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.nav-item {
+  text-decoration: none;
+  color: #a0a0a0;
+  padding: 0.8rem 1rem;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: block;
+}
+
+.nav-item:hover,
+.nav-item.active {
+  background-color: rgba(245, 166, 35, 0.1);
+  color: #f5a623;
+}
+
+/* Mobile Responsiveness for Sidebar */
+@media (max-width: 768px) {
+  .dashboard-sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+    border-right: none;
+    border-bottom: 1px solid #222;
+  }
+}
