@@ -1,15 +1,28 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { createVenue, uploadVenueImages } from '../firebase/venueService';
 import VenueCardPreview from '../components/VenueCardPreview';
-import '../styles/CreateVenue.css';
+import FeatureLocked from '../components/FeatureLocked';
 import { useError } from '../context/ErrorContext';
+import { useSubscription } from '../hooks/useSubscription';
+
+const inputClass =
+  'w-full rounded-lg border border-white/10 bg-surface px-4 py-3 text-base text-white placeholder-gray-600 outline-none transition focus:border-accent/60 focus:ring-1 focus:ring-accent/40';
+const labelClass =
+  'text-sm font-semibold uppercase tracking-wider text-gray-400';
+const stepTitleClass = 'mb-4 text-3xl font-bold tracking-tight text-white';
 
 function CreateVenue() {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const { showError } = useError();
+  // Tier comes from the owner's existing venue (first-time creators
+  // have none → trial → premium styling stays locked).
+  const { activeVenue } = useOutletContext() || {};
+  const { customBorders } = useSubscription(
+    activeVenue && activeVenue.subscriptionTier
+  );
 
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -21,9 +34,10 @@ function CreateVenue() {
     address: '',
     phone: '',
     website: '',
-    category: '', // Single string instead of array
+    categories: [], // Up to MAX_CATEGORIES; first one is the primary
     images: [],
     description: '',
+    cardBorderStyle: 'default',
     socialLinks: {
       instagram: '',
       facebook: '',
@@ -81,10 +95,12 @@ function CreateVenue() {
     if (
       !venueData.title ||
       !venueData.address ||
-      !venueData.category ||
+      venueData.categories.length === 0 ||
       !venueData.phone
     ) {
-      showError('Please fill in Title, Address, Phone, and Category.');
+      showError(
+        'Please fill in Title, Address, Phone, and at least one Category.'
+      );
       return;
     }
 
@@ -101,6 +117,9 @@ function CreateVenue() {
         {
           ...venueData,
           name: venueData.title,
+          // First selection doubles as the primary category (the
+          // consumer app still reads the singular field).
+          category: venueData.categories[0] || '',
           images: [], // Populated after upload
         },
         currentUser.uid
@@ -130,71 +149,45 @@ function CreateVenue() {
   };
 
   return (
-    // We removed <main className="dashboard-main"> from here.
-    // The create-venue-page div is now the root of this component.
-    <div className="create-venue-page">
-      <div className="preview-section">
+    <div className="flex min-h-screen flex-1 gap-8 bg-surface-deep p-8 text-gray-100 max-lg:flex-col">
+      <div className="flex w-1/2 items-center justify-center max-lg:w-full">
         <VenueCardPreview venueData={venueData} currentStep={currentStep} />
       </div>
 
-      <div className="form-section">
+      <div className="flex w-1/2 flex-col overflow-hidden rounded-2xl border border-white/10 bg-surface-card max-lg:w-full">
         {/* Focus Mode Escape Hatch */}
-        <div
-          style={{
-            padding: '1.5rem 2.5rem',
-            borderBottom: '1px solid #222',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            backgroundColor: '#121212',
-            borderRadius: '8px 8px 0 0',
-          }}
-        >
+        <div className="flex items-center justify-between border-b border-white/10 bg-surface px-10 py-6">
           <button
             onClick={() => navigate('/dashboard')}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#888',
-              cursor: 'pointer',
-              fontSize: '0.9rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              padding: 0,
-            }}
+            className="flex items-center gap-2 text-sm text-gray-500 transition hover:text-accent"
           >
             <span>←</span> Back to Dashboard
           </button>
-          <span
-            style={{
-              color: '#fff',
-              fontWeight: '600',
-              letterSpacing: '0.05em',
-            }}
-          >
+          <span className="font-semibold tracking-wider text-white">
             Venue Setup
           </span>
         </div>
 
-        <div
-          className="form-header"
-          style={{ padding: '1.5rem 2.5rem 0', marginBottom: '20px' }}
-        >
-          <div className="progress-steps">
+        <div className="mb-5 flex items-center justify-between gap-6 px-10 pt-6">
+          <div className="flex flex-1 gap-2">
             {[1, 2, 3, 4].map((step) => (
               <div
                 key={step}
-                className={`progress-step ${currentStep >= step ? 'active' : ''}`}
+                className={`h-1.5 flex-1 rounded-full transition ${
+                  currentStep >= step ? 'bg-accent' : 'bg-white/10'
+                }`}
               />
             ))}
           </div>
-          <button className="save-draft-btn" onClick={handleSaveDraft}>
+          <button
+            className="shrink-0 rounded-lg border border-white/15 px-4 py-2 text-sm font-medium text-gray-300 transition hover:border-accent/60 hover:text-accent"
+            onClick={handleSaveDraft}
+          >
             Save Draft
           </button>
         </div>
 
-        <div className="step-content" style={{ padding: '0 2.5rem' }}>
+        <div className="px-10">
           {currentStep === 1 && (
             <Step1Identity
               venueData={venueData}
@@ -218,23 +211,30 @@ function CreateVenue() {
             <Step4Operations
               venueData={venueData}
               updateVenueData={updateVenueData}
+              customBorders={customBorders}
             />
           )}
         </div>
 
-        <div className="form-navigation" style={{ padding: '1.5rem 2.5rem' }}>
+        <div className="mt-auto flex items-center justify-end gap-4 px-10 py-6">
           {currentStep > 1 && (
-            <button className="back-btn" onClick={goToPreviousStep}>
+            <button
+              className="mr-auto rounded-lg border border-white/15 px-6 py-3 font-semibold text-gray-200 transition hover:border-accent/60 hover:text-accent"
+              onClick={goToPreviousStep}
+            >
               Back
             </button>
           )}
           {currentStep < 4 ? (
-            <button className="next-btn" onClick={goToNextStep}>
+            <button
+              className="rounded-lg bg-accent px-6 py-3 font-semibold text-black transition hover:bg-accent-dim hover:shadow-glow-amber"
+              onClick={goToNextStep}
+            >
               Next
             </button>
           ) : (
             <button
-              className="done-btn"
+              className="rounded-lg bg-accent px-6 py-3 font-semibold text-black transition hover:bg-accent-dim hover:shadow-glow-amber disabled:cursor-not-allowed disabled:opacity-50"
               onClick={handleSubmit}
               disabled={loading}
             >
@@ -251,44 +251,36 @@ function CreateVenue() {
 
 function Step1Identity({ venueData, updateVenueData }) {
   return (
-    <div className="step-container">
-      <h1 className="step-title">Venue Identity & Contact</h1>
-      <div className="form-group">
-        <input
-          type="text"
-          className="form-input-large"
-          placeholder="Venue Name"
-          value={venueData.title}
-          onChange={(e) => updateVenueData('title', e.target.value)}
-        />
-      </div>
-      <div className="form-group">
-        <input
-          type="text"
-          className="form-input-large"
-          placeholder="Full Address"
-          value={venueData.address}
-          onChange={(e) => updateVenueData('address', e.target.value)}
-        />
-      </div>
-      <div className="form-group">
-        <input
-          type="tel"
-          className="form-input-large"
-          placeholder="Public Phone Number"
-          value={venueData.phone}
-          onChange={(e) => updateVenueData('phone', e.target.value)}
-        />
-      </div>
-      <div className="form-group">
-        <input
-          type="url"
-          className="form-input-large"
-          placeholder="Website URL"
-          value={venueData.website}
-          onChange={(e) => updateVenueData('website', e.target.value)}
-        />
-      </div>
+    <div className="flex flex-col gap-4">
+      <h1 className={stepTitleClass}>Venue Identity & Contact</h1>
+      <input
+        type="text"
+        className={inputClass}
+        placeholder="Venue Name"
+        value={venueData.title}
+        onChange={(e) => updateVenueData('title', e.target.value)}
+      />
+      <input
+        type="text"
+        className={inputClass}
+        placeholder="Full Address"
+        value={venueData.address}
+        onChange={(e) => updateVenueData('address', e.target.value)}
+      />
+      <input
+        type="tel"
+        className={inputClass}
+        placeholder="Public Phone Number"
+        value={venueData.phone}
+        onChange={(e) => updateVenueData('phone', e.target.value)}
+      />
+      <input
+        type="url"
+        className={inputClass}
+        placeholder="Website URL"
+        value={venueData.website}
+        onChange={(e) => updateVenueData('website', e.target.value)}
+      />
     </div>
   );
 }
@@ -300,26 +292,54 @@ const VENUE_CATEGORIES = [
   'lounge',
   'rooftop',
   'sports bar',
+  // Triggers the FPB X18 compliance flow in Settings → Legal & Compliance.
+  'adult entertainment',
 ];
 
+const MAX_CATEGORIES = 3;
+
 function Step2Category({ venueData, updateVenueData }) {
+  const selected = venueData.categories;
+  const atLimit = selected.length >= MAX_CATEGORIES;
+
+  const toggleCategory = (cat) => {
+    if (selected.includes(cat)) {
+      updateVenueData(
+        'categories',
+        selected.filter((c) => c !== cat)
+      );
+    } else if (!atLimit) {
+      updateVenueData('categories', [...selected, cat]);
+    }
+  };
+
   return (
-    <div className="step-container">
-      <h1 className="step-title">Primary Category</h1>
-      <p className="category-counter">
-        Select the core operational category (1 max)
+    <div className="flex flex-col">
+      <h1 className={stepTitleClass}>Venue Categories</h1>
+      <p className="mb-4 text-sm text-gray-500">
+        Select up to {MAX_CATEGORIES} categories — the first pick is your
+        primary ({selected.length}/{MAX_CATEGORIES} selected)
       </p>
-      <div className="category-grid">
-        {VENUE_CATEGORIES.map((cat) => (
-          <button
-            key={cat}
-            type="button"
-            className={`category-button ${venueData.category === cat ? 'selected' : ''}`}
-            onClick={() => updateVenueData('category', cat)}
-          >
-            {cat.charAt(0).toUpperCase() + cat.slice(1)}
-          </button>
-        ))}
+      <div className="grid grid-cols-3 gap-3 max-md:grid-cols-2">
+        {VENUE_CATEGORIES.map((cat) => {
+          const isSelected = selected.includes(cat);
+          return (
+            <button
+              key={cat}
+              type="button"
+              data-testid={`category-${cat.replace(/\s+/g, '-')}`}
+              disabled={!isSelected && atLimit}
+              className={`rounded-lg border px-4 py-3 font-medium capitalize transition disabled:cursor-not-allowed disabled:opacity-40 ${
+                isSelected
+                  ? 'border-accent bg-accent/10 text-accent shadow-glow-amber'
+                  : 'border-white/10 bg-surface text-gray-300 hover:border-white/25'
+              }`}
+              onClick={() => toggleCategory(cat)}
+            >
+              {cat.charAt(0).toUpperCase() + cat.slice(1)}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -358,21 +378,25 @@ function Step3Images({ updateVenueData, imageFiles, setImageFiles }) {
   };
 
   return (
-    <div className="step-container">
-      <h1 className="step-title">High-Resolution Media</h1>
-      {uploadError && <div className="upload-error">⚠️ {uploadError}</div>}
-      <div className="upload-grid">
+    <div className="flex flex-col">
+      <h1 className={stepTitleClass}>High-Resolution Media</h1>
+      {uploadError && (
+        <div className="mb-4 rounded-lg border border-red-400/40 bg-red-400/10 px-4 py-3 text-sm text-red-300">
+          ⚠️ {uploadError}
+        </div>
+      )}
+      <div className="grid grid-cols-2 gap-4">
         {[0, 1, 2, 3].map((index) => (
-          <div key={`image-${index}`} className="upload-slot">
+          <div key={`image-${index}`} className="aspect-square">
             {imageFiles[index] ? (
-              <div className="upload-preview">
+              <div className="relative h-full w-full overflow-hidden rounded-xl border border-white/10">
                 <img
                   src={URL.createObjectURL(imageFiles[index])}
                   alt={`Upload ${index}`}
-                  className="preview-image"
+                  className="h-full w-full object-cover"
                 />
                 <button
-                  className="remove-upload-btn"
+                  className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-sm text-white transition hover:bg-red-500"
                   onClick={() => removeImage(index)}
                 >
                   ✕
@@ -380,17 +404,17 @@ function Step3Images({ updateVenueData, imageFiles, setImageFiles }) {
               </div>
             ) : (
               <label
-                className="upload-placeholder"
+                className="flex h-full w-full cursor-pointer items-center justify-center rounded-xl border border-dashed border-white/20 bg-surface transition hover:border-accent/60 hover:bg-accent/5"
                 htmlFor={`image-upload-${index}`}
               >
-                <div className="upload-icon">+</div>
+                <div className="text-4xl font-light text-gray-500">+</div>
                 <input
                   id={`image-upload-${index}`}
                   type="file"
                   accept="image/*"
                   multiple={index === 0}
                   onChange={handleImageUpload}
-                  style={{ display: 'none' }}
+                  className="hidden"
                 />
               </label>
             )}
@@ -401,7 +425,58 @@ function Step3Images({ updateVenueData, imageFiles, setImageFiles }) {
   );
 }
 
-function Step4Operations({ venueData, updateVenueData }) {
+// Premium swipe-card border options (Pro+). Keys persist to
+// venue.cardBorderStyle and drive VenueCardPreview's live shell.
+const BORDER_STYLES = [
+  {
+    key: 'default',
+    name: 'Default',
+    description: 'Clean dark card',
+    swatchClass: 'border-white/15',
+  },
+  {
+    key: 'neon-glow',
+    name: 'Neon Glow',
+    description: 'Violet ring & glow',
+    swatchClass: 'border-neon-violet shadow-glow-violet',
+  },
+  {
+    key: 'gold-trim',
+    name: 'Gold Trim',
+    description: 'Amber ring & glow',
+    swatchClass: 'border-accent shadow-glow-amber',
+  },
+];
+
+function BorderStyleGrid({ venueData, updateVenueData }) {
+  return (
+    <div className="grid grid-cols-3 gap-3 max-md:grid-cols-1">
+      {BORDER_STYLES.map((style) => (
+        <button
+          key={style.key}
+          type="button"
+          data-testid={`border-style-${style.key}`}
+          className={`flex flex-col items-center gap-2 rounded-lg border px-4 py-4 transition ${
+            venueData.cardBorderStyle === style.key
+              ? 'border-accent bg-accent/10 shadow-glow-amber'
+              : 'border-white/10 bg-surface hover:border-white/25'
+          }`}
+          onClick={() => updateVenueData('cardBorderStyle', style.key)}
+        >
+          <span
+            className={`h-10 w-16 rounded-lg border-2 bg-surface-card ${style.swatchClass}`}
+          />
+          <span className="text-sm font-medium text-gray-200">
+            {style.name}
+          </span>
+          <span className="text-xs text-gray-500">{style.description}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function Step4Operations({ venueData, updateVenueData, customBorders }) {
   const handleSocialChange = (platform, value) => {
     updateVenueData('socialLinks', {
       ...venueData.socialLinks,
@@ -410,16 +485,13 @@ function Step4Operations({ venueData, updateVenueData }) {
   };
 
   return (
-    <div
-      className="step-container"
-      style={{ maxHeight: '60vh', overflowY: 'auto', paddingRight: '10px' }}
-    >
-      <h1 className="step-title">Operations & Socials</h1>
+    <div className="flex max-h-[60vh] flex-col gap-6 overflow-y-auto pr-2.5">
+      <h1 className={stepTitleClass}>Operations & Socials</h1>
 
-      <div className="form-group">
-        <label className="form-label-inline">Description:</label>
+      <div className="flex flex-col gap-2">
+        <label className={labelClass}>Description:</label>
         <textarea
-          className="form-textarea"
+          className={`${inputClass} resize-y`}
           placeholder="Detail your venue's atmosphere, dress code, and minimum spends..."
           value={venueData.description}
           onChange={(e) => updateVenueData('description', e.target.value)}
@@ -427,38 +499,57 @@ function Step4Operations({ venueData, updateVenueData }) {
         />
       </div>
 
-      <div className="form-group">
-        <label className="form-label-inline">Social Links:</label>
+      <div className="flex flex-col gap-2">
+        <label className={labelClass}>Social Links:</label>
         <input
           type="url"
-          className="form-input-large"
+          className={inputClass}
           placeholder="Instagram URL"
           value={venueData.socialLinks.instagram}
           onChange={(e) => handleSocialChange('instagram', e.target.value)}
-          style={{ marginBottom: '0.5rem' }}
         />
         <input
           type="url"
-          className="form-input-large"
+          className={inputClass}
           placeholder="Facebook URL"
           value={venueData.socialLinks.facebook}
           onChange={(e) => handleSocialChange('facebook', e.target.value)}
-          style={{ marginBottom: '0.5rem' }}
         />
         <input
           type="url"
-          className="form-input-large"
+          className={inputClass}
           placeholder="TikTok URL"
           value={venueData.socialLinks.tiktok}
           onChange={(e) => handleSocialChange('tiktok', e.target.value)}
         />
       </div>
 
-      <div className="form-group">
-        <label className="form-label-inline">
+      <div className="flex flex-col gap-2 pt-2">
+        <label className={labelClass}>Premium Card Styling:</label>
+        {customBorders ? (
+          <BorderStyleGrid
+            venueData={venueData}
+            updateVenueData={updateVenueData}
+          />
+        ) : (
+          <FeatureLocked
+            variant="compact"
+            requiredTier="pro"
+            featureName="Premium Card Styling"
+          >
+            <BorderStyleGrid
+              venueData={venueData}
+              updateVenueData={updateVenueData}
+            />
+          </FeatureLocked>
+        )}
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <label className={labelClass}>
           Hours (Configure in Dashboard Settings later):
         </label>
-        <p style={{ color: '#888', fontSize: '0.9rem' }}>
+        <p className="text-sm text-gray-500">
           Detailed daily hours can be configured post-launch.
         </p>
       </div>

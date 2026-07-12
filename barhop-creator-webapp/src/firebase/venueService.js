@@ -12,6 +12,7 @@ import {
   addDoc,
   Timestamp,
 } from 'firebase/firestore';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import { CLOUDINARY_CONFIG } from '../config/cloudinary';
 
 const db = getFirestore();
@@ -55,7 +56,18 @@ export async function createVenue(venueData, ownerId) {
     address: venueData.address,
     phone: venueData.phone || '',
     website: venueData.website || '',
-    category: venueData.category,
+    // Primary category stays singular for consumer-app compatibility;
+    // categories carries the full multi-select (up to 3).
+    category:
+      venueData.category ||
+      (venueData.categories && venueData.categories[0]) ||
+      '',
+    categories:
+      venueData.categories && venueData.categories.length > 0
+        ? venueData.categories
+        : venueData.category
+          ? [venueData.category]
+          : [],
     description: venueData.description,
     images: venueData.images || [],
     hours: venueData.hours || {},
@@ -65,7 +77,11 @@ export async function createVenue(venueData, ownerId) {
       tiktok: '',
     },
     subscriptionTier: 'trial', // Default B2B SaaS tier
+    cardBorderStyle: venueData.cardBorderStyle || 'default',
     published: false,
+    // Ownership is verified during registration (Paystack subaccount),
+    // so anyone who can reach venue creation is already verified.
+    verified: true,
     createdAt: Timestamp.now(),
     updatedAt: Timestamp.now(),
   };
@@ -158,3 +174,29 @@ export async function getRevenueAnalytics(venueId) {
     date: doc.data().date?.toDate(),
   }));
 }
+
+// ==============================
+//  B2B OPERATIONS: VERIFICATION (PAYSTACK SUBACCOUNT)
+// ==============================
+
+// Creates the owner's Paystack Subaccount from their SA bank details.
+// Paystack validates the account synchronously, so a successful call
+// means the owner is verified — the backend flips
+// users/{uid}.verificationStatus to VERIFIED, which VerificationContext
+// picks up live. Resolves to { success, subaccountCode }.
+export const callCreatePaystackSubaccount = async ({
+  businessName,
+  settlementBank,
+  accountNumber,
+}) => {
+  const createPaystackSubaccount = httpsCallable(
+    getFunctions(),
+    'createPaystackSubaccount'
+  );
+  const response = await createPaystackSubaccount({
+    businessName,
+    settlementBank,
+    accountNumber,
+  });
+  return response.data;
+};

@@ -100,9 +100,7 @@ describe('Navbar Component', () => {
     expect(screen.getAllByText('Dashboard').length).toBe(2);
 
     // Find and click the drawer container to close it
-    const drawerContainer = screen
-      .getAllByText('Dashboard')[1]
-      .closest('.navbar__drawer');
+    const drawerContainer = screen.getByTestId('navbar-drawer');
     fireEvent.click(drawerContainer);
 
     // Drawer is closed, back to 1 link

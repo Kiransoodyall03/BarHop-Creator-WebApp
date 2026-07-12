@@ -41,25 +41,33 @@ export const ErrorProvider = ({ children }) => {
 };
 
 // Toast component
+const TOAST_TYPE_CLASSES = {
+  error: 'border-red-400/40 text-red-300',
+  success: 'border-emerald-400/40 text-emerald-300',
+  warning: 'border-accent/40 text-accent',
+};
+
 function ErrorToast({ errors, removeError }) {
   if (errors.length === 0) return null;
 
   return (
-    <div className="toast-container">
+    <div className="fixed right-6 top-6 z-[1000] flex w-[min(380px,calc(100vw-3rem))] flex-col gap-3">
       {errors.map((error) => (
         <div
           key={error.id}
-          className={`toast toast-${error.type}`}
+          className={`flex animate-toast-in cursor-pointer items-start gap-3 rounded-xl border bg-surface-card px-4 py-3 shadow-2xl ${
+            TOAST_TYPE_CLASSES[error.type] || TOAST_TYPE_CLASSES.error
+          }`}
           onClick={() => removeError(error.id)}
         >
-          <div className="toast-icon">
+          <div className="text-base">
             {error.type === 'error' && '❌'}
             {error.type === 'success' && '✅'}
             {error.type === 'warning' && '⚠️'}
           </div>
-          <div className="toast-message">{error.message}</div>
+          <div className="flex-1 text-sm text-gray-200">{error.message}</div>
           <button
-            className="toast-close"
+            className="text-gray-500 transition hover:text-white"
             onClick={(e) => {
               e.stopPropagation();
               removeError(error.id);

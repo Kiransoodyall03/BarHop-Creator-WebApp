@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import CreateVenue from '../../pages/CreateVenue';
@@ -20,6 +20,9 @@ jest.mock(
       return <div>{children}</div>;
     },
     useNavigate: () => mockNavigate,
+    // CreateVenue reads the active venue's tier for feature gating; no
+    // venue in these tests → premium styling renders locked.
+    useOutletContext: () => ({ activeVenue: null }),
     Link: function MockLink({ children, to }) {
       return <a href={to}>{children}</a>;
     },
@@ -80,7 +83,7 @@ describe('CreateVenue Component - B2B Wizard', () => {
     // Currently on Step 1. Click Next -> Step 2
     const nextBtn = screen.getByText(/Next/i);
     fireEvent.click(nextBtn);
-    expect(screen.getByText(/Primary Category/i)).toBeInTheDocument();
+    expect(screen.getByText(/Venue Categories/i)).toBeInTheDocument();
 
     // Click Next -> Step 3
     fireEvent.click(screen.getByText(/Next/i));
@@ -89,7 +92,7 @@ describe('CreateVenue Component - B2B Wizard', () => {
     // Click Back -> Step 2
     const backBtn = screen.getByRole('button', { name: 'Back' });
     fireEvent.click(backBtn);
-    expect(screen.getByText(/Primary Category/i)).toBeInTheDocument();
+    expect(screen.getByText(/Venue Categories/i)).toBeInTheDocument();
   });
 
   it('triggers validation error if required fields are missing on submit', async () => {
@@ -105,9 +108,56 @@ describe('CreateVenue Component - B2B Wizard', () => {
 
     // Should catch the empty fields
     expect(mockShowError).toHaveBeenCalledWith(
-      'Please fill in Title, Address, Phone, and Category.'
+      'Please fill in Title, Address, Phone, and at least one Category.'
     );
     expect(createVenue).not.toHaveBeenCalled();
+  });
+
+  it('allows multiple categories, caps at 3, and sends the first as primary', async () => {
+    createVenue.mockResolvedValueOnce('new-venue-id');
+    uploadVenueImages.mockResolvedValueOnce(['https://mock-image.com/1.jpg']);
+
+    renderComponent();
+
+    fireEvent.change(screen.getByPlaceholderText(/Venue Name/i), {
+      target: { value: 'Test Club' },
+    });
+    fireEvent.change(screen.getByPlaceholderText(/Full Address/i), {
+      target: { value: '123 Main St' },
+    });
+    fireEvent.change(screen.getByPlaceholderText(/Public Phone Number/i), {
+      target: { value: '555-0000' },
+    });
+    fireEvent.click(screen.getByText(/Next/i));
+
+    // Select three categories; the rest become disabled at the cap.
+    fireEvent.click(screen.getByTestId('category-club'));
+    fireEvent.click(screen.getByTestId('category-bar'));
+    fireEvent.click(screen.getByTestId('category-rooftop'));
+    expect(screen.getByTestId('category-lounge')).toBeDisabled();
+
+    // Deselecting re-enables the rest.
+    fireEvent.click(screen.getByTestId('category-rooftop'));
+    expect(screen.getByTestId('category-lounge')).not.toBeDisabled();
+    fireEvent.click(screen.getByTestId('category-lounge'));
+
+    fireEvent.click(screen.getByText(/Next/i));
+    const file = new File(['dummy'], 'test.png', { type: 'image/png' });
+    fireEvent.change(document.getElementById('image-upload-0'), {
+      target: { files: [file] },
+    });
+    fireEvent.click(screen.getByText(/Next/i));
+    fireEvent.click(screen.getByText(/Launch Venue/i));
+
+    await waitFor(() => {
+      expect(createVenue).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: 'club',
+          categories: ['club', 'bar', 'lounge'],
+        }),
+        'user123'
+      );
+    });
   });
 
   it('triggers validation error if no images are uploaded', async () => {
@@ -189,6 +239,7 @@ describe('CreateVenue Component - B2B Wizard', () => {
           address: '123 Main St',
           phone: '555-0000',
           category: 'club',
+          categories: ['club'],
           socialLinks: expect.objectContaining({
             instagram: 'https://ig.com/test',
           }),

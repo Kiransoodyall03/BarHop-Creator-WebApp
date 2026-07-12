@@ -29,8 +29,11 @@ export const createUserDocument = async (fbUser, extraData = {}) => {
       provider,
       // Onboarding state — new fields from types.ts
       venueId: null,
-      verified: false,
       onboardingComplete: false,
+      // Paystack compliance state, updated by createPaystackSubaccount
+      verificationStatus: 'UNVERIFIED',
+      detailsSubmitted: false,
+      payoutsEnabled: false,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     };
@@ -41,6 +44,52 @@ export const createUserDocument = async (fbUser, extraData = {}) => {
   } catch (err) {
     console.error(
       'userService: Firestore write failed:',
+      err.code,
+      err.message
+    );
+    throw err;
+  }
+};
+
+// Saves the owner + business details collected during registration onto
+// users/{uid}. Merge-only, so it is safe to re-run when a user retries
+// verification with corrected details.
+export const saveBusinessProfile = async (
+  uid,
+  { phone, businessRole, businessProfile }
+) => {
+  try {
+    const userRef = doc(db, 'users', uid);
+    await setDoc(
+      userRef,
+      { phone, businessRole, businessProfile, updatedAt: serverTimestamp() },
+      { merge: true }
+    );
+  } catch (err) {
+    console.error(
+      'userService: business profile write failed:',
+      err.code,
+      err.message
+    );
+    throw err;
+  }
+};
+
+// Updates only users/{uid}.businessProfile (Settings → Business Profile
+// form). Callers must pass the FULL profile object (spread the existing
+// one first) — this replaces the map rather than deep-merging it, so
+// dropped keys would be lost otherwise.
+export const updateBusinessProfile = async (uid, businessProfile) => {
+  try {
+    const userRef = doc(db, 'users', uid);
+    await setDoc(
+      userRef,
+      { businessProfile, updatedAt: serverTimestamp() },
+      { merge: true }
+    );
+  } catch (err) {
+    console.error(
+      'userService: business profile update failed:',
       err.code,
       err.message
     );
@@ -68,9 +117,16 @@ export const getUserDocument = async (uid) => {
       firstName: data.firstName,
       lastName: data.lastName,
       provider: data.provider,
+      phone: data.phone ?? '',
+      businessRole: data.businessRole ?? '',
+      businessProfile: data.businessProfile ?? null,
+      paystackSubaccountId: data.paystackSubaccountId ?? null,
+      paystackCustomerCode: data.paystackCustomerCode ?? null,
       venueId: data.venueId ?? null,
-      verified: data.verified ?? false,
       onboardingComplete: data.onboardingComplete ?? false,
+      verificationStatus: data.verificationStatus ?? 'UNVERIFIED',
+      detailsSubmitted: data.detailsSubmitted ?? false,
+      payoutsEnabled: data.payoutsEnabled ?? false,
       createdAt: data.createdAt?.toDate() ?? null,
       updatedAt: data.updatedAt?.toDate() ?? null,
     };

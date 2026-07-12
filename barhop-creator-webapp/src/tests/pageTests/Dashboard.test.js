@@ -69,9 +69,7 @@ describe('Dashboard Component - B2B Marketing UI', () => {
     getVenuesByOwner.mockReturnValue(new Promise(() => {}));
 
     renderWithRouter(<Dashboard />);
-    expect(
-      screen.getByText(/Loading marketing analytics/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Loading dashboard/i)).toBeInTheDocument();
   });
 
   it('renders empty state prompting venue creation if no venues exist', async () => {

@@ -3,7 +3,6 @@ import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import { useAuth } from '../context/AuthContext';
 import { getVenuesByOwner } from '../firebase/venueService';
-import '../styles/Dashboard.css';
 
 function DashboardLayout() {
   const { currentUser } = useAuth();
@@ -29,23 +28,21 @@ function DashboardLayout() {
     fetchVenueForSidebar();
   }, [fetchVenueForSidebar]);
 
-  if (loading) {
-    return (
-      <div className="dashboard-layout">
-        <div className="dashboard-main center-content">
-          <div className="spinner"></div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="dashboard-layout">
+    <div className="flex min-h-screen bg-surface-deep max-md:flex-col">
       {/* 1. Static Sidebar on the left */}
       <Sidebar activeVenue={activeVenue} />
 
-      {/* 2. Dynamic Content on the right (Dashboard, CreateVenue, or Preview) */}
-      <Outlet context={{ activeVenue }} />
+      {/* 2. Main content area */}
+      <main className="flex-1 flex flex-col">
+        {loading ? (
+           <div className="flex flex-1 items-center justify-center">
+             <div className="h-10 w-10 animate-spin rounded-full border-2 border-white/10 border-t-accent"></div>
+           </div>
+        ) : (
+          <Outlet context={{ activeVenue }} />
+        )}
+      </main>
     </div>
   );
 }
