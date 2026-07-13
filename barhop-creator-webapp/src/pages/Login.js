@@ -4,17 +4,16 @@ import GoogleButton from 'react-google-button';
 import { loginWithEmail, loginWithGoogle } from '../firebase/authService';
 import { createUserDocument } from '../firebase/userService';
 import { useError } from '../context/ErrorContext';
-
-const labelClass =
-  'text-xs font-semibold uppercase tracking-wider text-gray-400';
-const inputClass =
-  'w-full rounded-lg border border-white/10 bg-surface px-4 py-2.5 text-sm text-white placeholder-gray-600 outline-none transition focus:border-accent/60 focus:ring-1 focus:ring-accent/40';
+import { useTheme } from '../context/ThemeContext';
+import Button from '../components/ui/Button';
+import { Label, Input } from '../components/ui/Field';
 
 function Login() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const { showError, showSuccess } = useError();
+  const { resolvedTheme } = useTheme();
 
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -48,23 +47,28 @@ function Login() {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-surface-deep px-4 py-12 text-gray-100">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-80 bg-gradient-to-b from-neon-violet/10 via-accent/5 to-transparent" />
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-surface px-4 py-12">
+      <div className="hero-glow pointer-events-none absolute inset-x-0 top-0 h-80" />
 
-      <div className="relative w-full max-w-md rounded-2xl border border-white/10 bg-surface-card p-8">
-        <Link to="/" className="font-display text-3xl tracking-wider text-white">
+      <div className="relative w-full max-w-md rounded-2xl border border-edge bg-surface-raised p-8 shadow-card">
+        <Link
+          to="/"
+          className="font-display text-3xl font-bold tracking-tight text-content"
+        >
           BarHop
         </Link>
-        <h1 className="mt-4 text-2xl font-bold text-white">Welcome Back</h1>
-        <p className="mt-1 text-sm text-gray-400">
+        <h1 className="mt-4 font-display text-2xl font-bold text-content">
+          Welcome Back
+        </h1>
+        <p className="mt-1 text-sm text-content-muted">
           Sign in to your creator account
         </p>
 
         <form className="mt-6 flex flex-col gap-4" onSubmit={handleSubmit}>
           <div className="flex flex-col gap-1.5">
-            <label className={labelClass}>Email</label>
-            <input
-              className={inputClass}
+            <Label className="mb-0">Email</Label>
+            <Input
+              className="text-sm"
               type="email"
               name="email"
               placeholder="jane@example.com"
@@ -74,9 +78,9 @@ function Login() {
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className={labelClass}>Password</label>
-            <input
-              className={inputClass}
+            <Label className="mb-0">Password</Label>
+            <Input
+              className="text-sm"
               type="password"
               name="password"
               placeholder="Your password"
@@ -85,28 +89,32 @@ function Login() {
               required
             />
           </div>
-          <button
+          <Button
             type="submit"
-            className="mt-2 w-full rounded-lg bg-accent py-3 font-semibold text-black transition hover:bg-accent-dim hover:shadow-glow-amber disabled:cursor-not-allowed disabled:opacity-50"
+            className="mt-2 w-full py-3"
             disabled={loading}
           >
             {loading ? 'Signing in…' : 'Sign In'}
-          </button>
+          </Button>
         </form>
 
-        <div className="my-6 flex items-center gap-3 text-xs uppercase tracking-widest text-gray-500 before:h-px before:flex-1 before:bg-white/10 after:h-px after:flex-1 after:bg-white/10">
+        <div className="my-6 flex items-center gap-3 text-xs uppercase tracking-widest text-content-faint before:h-px before:flex-1 before:bg-edge after:h-px after:flex-1 after:bg-edge">
           or
         </div>
 
         <div className="flex justify-center">
-          <GoogleButton type="dark" onClick={handleGoogle} disabled={loading} />
+          <GoogleButton
+            type={resolvedTheme}
+            onClick={handleGoogle}
+            disabled={loading}
+          />
         </div>
 
-        <p className="mt-6 text-center text-sm text-gray-400">
+        <p className="mt-6 text-center text-sm text-content-muted">
           Don&apos;t have an account?{' '}
           <Link
             to="/register"
-            className="font-semibold text-accent transition hover:text-accent-dim"
+            className="font-semibold text-primary transition-colors hover:text-primary-hover"
           >
             Sign up free
           </Link>

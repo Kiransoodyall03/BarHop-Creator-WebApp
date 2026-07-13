@@ -2,17 +2,15 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useError } from '../context/ErrorContext';
 import { updateBusinessProfile } from '../firebase/userService';
+import Card from './ui/Card';
+import Button from './ui/Button';
+import { Label, Input } from './ui/Field';
 
 // SARS VAT numbers are exactly 10 digits and always start with '4'.
 const VAT_REGEX = /^4\d{9}$/;
 // CIPC company registration numbers follow YYYY/NNNNNN/NN.
 const CIPC_REGEX = /^\d{4}\/\d{6}\/\d{2}$/;
 const EMAIL_REGEX = /^\S+@\S+\.\S+$/;
-
-const inputClass =
-  'w-full rounded-lg border border-white/10 bg-surface px-4 py-2.5 text-sm text-white placeholder-gray-600 outline-none transition focus:border-accent/60 focus:ring-1 focus:ring-accent/40';
-const sectionClass =
-  'rounded-2xl border border-white/10 bg-surface-card/80 p-8 backdrop-blur';
 
 function Field({
   label,
@@ -26,23 +24,21 @@ function Field({
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-xs font-semibold uppercase tracking-wider text-gray-400">
-        {label}
-      </label>
-      <input
+      <Label className="mb-0">{label}</Label>
+      <Input
         type={type}
         data-testid={testId}
-        className={`${inputClass} ${error ? 'border-red-400/60' : ''}`}
+        className={`text-sm ${error ? 'border-danger/60' : ''}`}
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
       />
       {error ? (
-        <p data-testid={`${testId}-error`} className="text-xs text-red-400">
+        <p data-testid={`${testId}-error`} className="text-xs text-danger">
           {error}
         </p>
       ) : (
-        help && <p className="text-xs text-gray-600">{help}</p>
+        help && <p className="text-xs text-content-faint">{help}</p>
       )}
     </div>
   );
@@ -141,11 +137,11 @@ function BusinessProfile() {
       onSubmit={handleSubmit}
       className="flex flex-col gap-6"
     >
-      <section className={sectionClass}>
-        <h3 className="text-lg font-semibold text-white">
+      <Card as="section">
+        <h3 className="text-lg font-semibold text-content">
           Public Venue Information
         </h3>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-content-muted">
           How your business presents to guests and on invoices.
         </p>
         <div className="mt-6 grid gap-5 sm:grid-cols-2">
@@ -186,13 +182,13 @@ function BusinessProfile() {
             placeholder="@neonnights"
           />
         </div>
-      </section>
+      </Card>
 
-      <section className={sectionClass}>
-        <h3 className="text-lg font-semibold text-white">
+      <Card as="section">
+        <h3 className="text-lg font-semibold text-content">
           Corporate &amp; Financial Identity (FICA)
         </h3>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-content-muted">
           Statutory identity used for tax invoices, FICA verification, and
           POPIA/PAIA compliance.
         </p>
@@ -226,11 +222,11 @@ function BusinessProfile() {
           />
         </div>
 
-        <div className="mt-8 border-t border-white/10 pt-6">
-          <h4 className="text-sm font-semibold text-white">
+        <div className="mt-8 border-t border-edge pt-6">
+          <h4 className="text-sm font-semibold text-content">
             Information Officer (POPIA / PAIA)
           </h4>
-          <p className="mt-1 text-xs text-gray-500">
+          <p className="mt-1 text-xs text-content-muted">
             An Information Officer is required by law under the POPIA Act to
             handle data subject requests on behalf of your business.
           </p>
@@ -261,17 +257,18 @@ function BusinessProfile() {
             />
           </div>
         </div>
-      </section>
+      </Card>
 
       <div className="flex items-center justify-end gap-4">
-        <button
+        <Button
           type="submit"
+          size="lg"
           data-testid="bp-save"
           disabled={saving}
-          className="rounded-lg bg-accent px-8 py-3 font-semibold text-black transition hover:bg-accent-dim hover:shadow-glow-amber disabled:cursor-not-allowed disabled:opacity-50"
+          className="px-8"
         >
           {saving ? 'Saving…' : 'Save Business Profile'}
-        </button>
+        </Button>
       </div>
     </form>
   );

@@ -1,20 +1,95 @@
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-body {
-  margin: 0;
-  min-height: 100vh;
-  @apply bg-surface-deep font-sans text-gray-100 antialiased;
+@layer base {
+  /* Neon Sunset tokens — RGB channels consumed by tailwind.config.js via
+     rgb(var(--x) / <alpha-value>) so opacity modifiers keep working. */
+  :root {
+    color-scheme: light;
+    --color-surface: 255 251 247; /* #FFFBF7 */
+    --color-surface-raised: 251 242 238; /* #FBF2EE */
+    --color-surface-overlay: 246 232 226; /* #F6E8E2 */
+    --color-content: 36 22 41; /* #241629 */
+    --color-content-muted: 107 90 112; /* #6B5A70 */
+    --color-content-faint: 156 138 161; /* #9C8AA1 */
+    --color-edge: 240 224 218; /* #F0E0DA */
+    --color-edge-strong: 227 205 198; /* #E3CDC6 */
+    --color-primary: 230 58 91; /* #E63A5B */
+    --color-primary-hover: 210 44 78; /* #D22C4E */
+    --color-on-primary: 255 255 255;
+    --color-secondary: 180 83 9; /* #B45309 — raw gold is unreadable on light */
+    --color-on-secondary: 255 255 255;
+    --color-success: 13 148 136; /* #0D9488 */
+    --color-danger: 220 38 38; /* #DC2626 */
+    --shadow-card: 0 4px 20px rgb(36 22 41 / 0.08);
+    --shadow-card-hover: 0 8px 28px rgb(36 22 41 / 0.12);
+  }
+
+  .dark {
+    color-scheme: dark;
+    --color-surface: 18 11 20; /* #120B14 */
+    --color-surface-raised: 30 18 32; /* #1E1220 */
+    --color-surface-overlay: 42 24 48; /* #2A1830 */
+    --color-content: 247 242 245; /* #F7F2F5 */
+    --color-content-muted: 180 166 184; /* #B4A6B8 */
+    --color-content-faint: 126 109 132; /* #7E6D84 */
+    --color-edge: 54 42 61; /* #362A3D */
+    --color-edge-strong: 78 63 88; /* #4E3F58 */
+    --color-primary: 255 77 109; /* #FF4D6D */
+    --color-primary-hover: 255 107 133; /* #FF6B85 */
+    --color-on-primary: 255 255 255;
+    --color-secondary: 255 184 77; /* #FFB84D */
+    --color-on-secondary: 42 20 36; /* #2A1424 */
+    --color-success: 45 212 191; /* #2DD4BF */
+    --color-danger: 248 113 113; /* #F87171 */
+    --shadow-card: 0 8px 28px rgb(0 0 0 / 0.45);
+    --shadow-card-hover: 0 12px 36px rgb(0 0 0 / 0.55);
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    @apply bg-surface font-sans text-content antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-display;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  code {
+    font-family:
+      source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+  }
 }
 
-html {
-  scroll-behavior: smooth;
-}
+@layer components {
+  /* Ambient coral→gold page-top glow (Landing, Login, Register, Reservations, Plans) */
+  .hero-glow {
+    background: linear-gradient(
+      to bottom,
+      rgb(255 77 109 / 0.06),
+      rgb(255 184 77 / 0.04),
+      transparent
+    );
+  }
 
-code {
-  font-family:
-    source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+  .dark .hero-glow {
+    background: linear-gradient(
+      to bottom,
+      rgb(255 77 109 / 0.14),
+      rgb(255 184 77 / 0.07),
+      transparent
+    );
+  }
+
+  .text-gradient-sunset {
+    @apply bg-gradient-to-r from-[#FF4D6D] to-[#FFB84D] bg-clip-text text-transparent;
+  }
 }

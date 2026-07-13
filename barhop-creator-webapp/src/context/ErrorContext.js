@@ -1,4 +1,10 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
+import {
+  XCircleIcon,
+  CheckCircleIcon,
+  ExclamationTriangleIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline';
 
 const ErrorContext = createContext();
 
@@ -41,10 +47,13 @@ export const ErrorProvider = ({ children }) => {
 };
 
 // Toast component
-const TOAST_TYPE_CLASSES = {
-  error: 'border-red-400/40 text-red-300',
-  success: 'border-emerald-400/40 text-emerald-300',
-  warning: 'border-accent/40 text-accent',
+const TOAST_TYPES = {
+  error: { classes: 'border-danger/40 text-danger', Icon: XCircleIcon },
+  success: { classes: 'border-success/40 text-success', Icon: CheckCircleIcon },
+  warning: {
+    classes: 'border-secondary/40 text-secondary',
+    Icon: ExclamationTriangleIcon,
+  },
 };
 
 function ErrorToast({ errors, removeError }) {
@@ -52,31 +61,29 @@ function ErrorToast({ errors, removeError }) {
 
   return (
     <div className="fixed right-6 top-6 z-[1000] flex w-[min(380px,calc(100vw-3rem))] flex-col gap-3">
-      {errors.map((error) => (
-        <div
-          key={error.id}
-          className={`flex animate-toast-in cursor-pointer items-start gap-3 rounded-xl border bg-surface-card px-4 py-3 shadow-2xl ${
-            TOAST_TYPE_CLASSES[error.type] || TOAST_TYPE_CLASSES.error
-          }`}
-          onClick={() => removeError(error.id)}
-        >
-          <div className="text-base">
-            {error.type === 'error' && '❌'}
-            {error.type === 'success' && '✅'}
-            {error.type === 'warning' && '⚠️'}
-          </div>
-          <div className="flex-1 text-sm text-gray-200">{error.message}</div>
-          <button
-            className="text-gray-500 transition hover:text-white"
-            onClick={(e) => {
-              e.stopPropagation();
-              removeError(error.id);
-            }}
+      {errors.map((error) => {
+        const { classes, Icon } = TOAST_TYPES[error.type] || TOAST_TYPES.error;
+        return (
+          <div
+            key={error.id}
+            className={`flex animate-toast-in cursor-pointer items-start gap-3 rounded-xl border bg-surface-overlay px-4 py-3 shadow-card ${classes}`}
+            onClick={() => removeError(error.id)}
           >
-            ✕
-          </button>
-        </div>
-      ))}
+            <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
+            <div className="flex-1 text-sm text-content">{error.message}</div>
+            <button
+              className="text-content-faint transition-colors hover:text-content"
+              aria-label="Dismiss"
+              onClick={(e) => {
+                e.stopPropagation();
+                removeError(error.id);
+              }}
+            >
+              <XMarkIcon className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </div>
+        );
+      })}
     </div>
   );
 }

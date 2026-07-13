@@ -36,15 +36,15 @@ const buildVenue = (overrides = {}) => ({
 
 describe('Preview Page - tier-gated publish toggle', () => {
   const mockShowError = jest.fn();
-
-  beforeAll(() => {
-    global.alert = jest.fn();
-  });
+  const mockShowSuccess = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
     useAuth.mockReturnValue({ currentUser: { uid: 'user123' } });
-    useError.mockReturnValue({ showError: mockShowError });
+    useError.mockReturnValue({
+      showError: mockShowError,
+      showSuccess: mockShowSuccess,
+    });
     updateVenue.mockResolvedValue();
   });
 
@@ -61,7 +61,7 @@ describe('Preview Page - tier-gated publish toggle', () => {
 
     const button = screen.getByTestId('publish-toggle-button');
     expect(button).toHaveAttribute('aria-disabled', 'true');
-    expect(button).toHaveTextContent('🔒 Publish to App');
+    expect(button).toHaveTextContent('Publish to App');
 
     fireEvent.click(button);
 

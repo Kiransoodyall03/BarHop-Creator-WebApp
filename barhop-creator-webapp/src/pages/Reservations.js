@@ -1,6 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import FeatureLocked from '../components/FeatureLocked';
+import Button from '../components/ui/Button';
+import { Input } from '../components/ui/Field';
+import { Spinner } from '../components/ui/Spinner';
 import { useError } from '../context/ErrorContext';
 import { useSubscription } from '../hooks/useSubscription';
 import {
@@ -8,12 +11,9 @@ import {
   getTonightReservations,
 } from '../firebase/venueService';
 
-const inputClass =
-  'w-full rounded-lg border border-white/10 bg-surface px-4 py-2.5 text-sm text-white placeholder-gray-600 outline-none transition focus:border-accent/60 focus:ring-1 focus:ring-accent/40';
-
 const STATUS_CLASSES = {
-  Confirmed: 'bg-emerald-500/15 text-emerald-400',
-  Pending: 'bg-accent/15 text-accent',
+  Confirmed: 'bg-success/15 text-success',
+  Pending: 'bg-secondary/15 text-secondary',
 };
 
 // Believable guestlist shown (blurred) to locked tiers — pure FOMO
@@ -137,12 +137,12 @@ function ReservationsPanel({ venueId, isLocked }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="rounded-2xl border border-white/10 bg-surface-card p-8">
+      <div className="rounded-2xl border border-edge bg-surface-raised p-8 shadow-card">
         <div className="flex items-center justify-between gap-4">
-          <h2 className="text-lg font-semibold text-white">
+          <h2 className="text-lg font-semibold text-content">
             Tonight&apos;s Guestlist
           </h2>
-          <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-gray-400">
+          <span className="rounded-full border border-edge bg-content/5 px-3 py-1 text-xs text-content-muted">
             {reservations.length} reservation
             {reservations.length === 1 ? '' : 's'}
           </span>
@@ -150,10 +150,10 @@ function ReservationsPanel({ venueId, isLocked }) {
 
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <div className="h-10 w-10 animate-spin rounded-full border-2 border-white/10 border-t-accent"></div>
+            <Spinner />
           </div>
         ) : reservations.length === 0 ? (
-          <p className="py-10 text-center text-sm text-gray-500">
+          <p className="py-10 text-center text-sm text-content-faint">
             No reservations for tonight yet — add your first VIP booking below.
           </p>
         ) : (
@@ -162,25 +162,25 @@ function ReservationsPanel({ venueId, isLocked }) {
               <li
                 key={reservation.id}
                 data-testid={`reservation-row-${reservation.id}`}
-                className="flex items-center justify-between gap-4 border-b border-white/5 py-3 text-sm last:border-b-0"
+                className="flex items-center justify-between gap-4 border-b border-edge py-3 text-sm last:border-b-0"
               >
                 <div className="flex min-w-0 flex-col">
-                  <span className="truncate font-medium text-gray-200">
+                  <span className="truncate font-medium text-content">
                     {reservation.guestName}
                   </span>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-content-faint">
                     Party of {reservation.partySize} ·{' '}
                     {reservation.tableNumber || 'Unassigned'}
                   </span>
                 </div>
                 <div className="flex shrink-0 items-center gap-3">
-                  <span className="text-gray-400">
+                  <span className="text-content-muted">
                     {formatTime(reservation)}
                   </span>
                   <span
                     className={`rounded-full px-3 py-1 text-xs font-semibold ${
                       STATUS_CLASSES[reservation.status] ||
-                      'bg-white/10 text-gray-300'
+                      'bg-content/10 text-content-muted'
                     }`}
                   >
                     {reservation.status || 'Pending'}
@@ -195,51 +195,51 @@ function ReservationsPanel({ venueId, isLocked }) {
       <form
         data-testid="add-reservation-form"
         onSubmit={handleAddReservation}
-        className="rounded-2xl border border-white/10 bg-surface-card p-8"
+        className="rounded-2xl border border-edge bg-surface-raised p-8 shadow-card"
       >
-        <h2 className="text-lg font-semibold text-white">Add Reservation</h2>
+        <h2 className="text-lg font-semibold text-content">Add Reservation</h2>
         <div className="mt-4 grid grid-cols-4 gap-3 max-md:grid-cols-1">
-          <input
+          <Input
             type="text"
-            className={inputClass}
+            className="text-sm"
             placeholder="Guest name"
             data-testid="reservation-guest-input"
             value={form.guestName}
             onChange={(e) => updateForm('guestName', e.target.value)}
           />
-          <input
+          <Input
             type="number"
             min="1"
-            className={inputClass}
+            className="text-sm"
             placeholder="Party size"
             data-testid="reservation-party-input"
             value={form.partySize}
             onChange={(e) => updateForm('partySize', e.target.value)}
           />
-          <input
+          <Input
             type="text"
-            className={inputClass}
+            className="text-sm"
             placeholder="Table (e.g. VIP 1)"
             data-testid="reservation-table-input"
             value={form.tableNumber}
             onChange={(e) => updateForm('tableNumber', e.target.value)}
           />
-          <input
+          <Input
             type="time"
-            className={inputClass}
+            className="text-sm"
             data-testid="reservation-time-input"
             value={form.time}
             onChange={(e) => updateForm('time', e.target.value)}
           />
         </div>
-        <button
+        <Button
           type="submit"
           data-testid="add-reservation-submit"
           disabled={submitting}
-          className="mt-4 rounded-lg bg-accent px-6 py-2.5 font-semibold text-black transition hover:bg-accent-dim hover:shadow-glow-amber disabled:cursor-not-allowed disabled:opacity-50"
+          className="mt-4 px-6"
         >
           {submitting ? 'Adding…' : 'Add to Guestlist'}
-        </button>
+        </Button>
       </form>
     </div>
   );
@@ -252,18 +252,18 @@ function Reservations() {
   );
 
   return (
-    <main className="relative min-h-screen flex-1 overflow-hidden bg-surface-deep px-6 py-12 text-gray-100 lg:px-12">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-80 bg-gradient-to-b from-neon-violet/10 via-accent/5 to-transparent" />
+    <main className="relative min-h-screen flex-1 overflow-hidden bg-surface px-6 py-12 lg:px-12">
+      <div className="hero-glow pointer-events-none absolute inset-x-0 top-0 h-80" />
 
       <div className="relative mx-auto max-w-4xl">
         <header className="mb-10">
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-accent">
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-primary">
             Front of House
           </p>
-          <h1 className="mt-3 text-4xl font-bold tracking-tight text-white">
+          <h1 className="mt-3 font-display text-4xl font-bold tracking-tight text-content">
             VIP Reservations
           </h1>
-          <p className="mt-4 max-w-xl text-gray-400">
+          <p className="mt-4 max-w-xl text-content-muted">
             Manage tonight&apos;s guestlist, lock in VIP tables, and protect
             your floor from no-shows.
           </p>
@@ -272,10 +272,10 @@ function Reservations() {
         {!activeVenue ? (
           <div
             data-testid="no-venue-notice"
-            className="rounded-xl border border-white/10 bg-white/5 px-5 py-4 text-sm text-gray-300"
+            className="rounded-xl border border-edge bg-content/5 px-5 py-4 text-sm text-content-muted"
           >
             Create your venue card first to start taking VIP reservations.{' '}
-            <Link to="/venue/create" className="text-accent hover:underline">
+            <Link to="/venue/create" className="text-primary hover:underline">
               Create your venue
             </Link>
           </div>

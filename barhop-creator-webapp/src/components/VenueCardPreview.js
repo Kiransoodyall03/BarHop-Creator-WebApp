@@ -1,10 +1,17 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import {
+  PhoneIcon,
+  GlobeAltIcon,
+  CameraIcon,
+  MusicalNoteIcon,
+} from '@heroicons/react/24/outline';
 
 // Premium (Pro+) swipe-card border treatments, keyed by
 // venue.cardBorderStyle. Default stays the plain card shell.
+// Keys are persisted in Firestore — never rename them.
 const CARD_BORDER_CLASSES = {
-  'neon-glow': 'ring-2 ring-neon-violet shadow-glow-violet',
-  'gold-trim': 'ring-2 ring-accent shadow-glow-amber',
+  'neon-glow': 'ring-2 ring-primary shadow-glow-primary',
+  'gold-trim': 'ring-2 ring-[#FFB84D] shadow-glow-gold',
 };
 
 function VenueCardPreview({ venueData }) {
@@ -141,8 +148,11 @@ function VenueCardPreview({ venueData }) {
       : `translateY(calc(100% - 40px + ${currentY}px))`;
 
   return (
+    // The `dark` class pins this subtree to dark-mode tokens: the card
+    // previews the consumer app (always dark) regardless of the creator
+    // app's theme. Use tokens only inside — never `dark:` variants.
     <div
-      className={`sticky top-10 w-[min(450px,100%)] max-w-full overflow-hidden rounded-2xl bg-surface-card shadow-[0_12px_32px_rgba(0,0,0,0.5)] max-md:relative max-md:top-0 max-md:mx-auto ${
+      className={`dark sticky top-10 w-[min(450px,100%)] max-w-full overflow-hidden rounded-2xl bg-surface-overlay shadow-[0_12px_32px_rgba(0,0,0,0.5)] max-md:relative max-md:top-0 max-md:mx-auto ${
         CARD_BORDER_CLASSES[cardBorderStyle] || ''
       }`}
     >
@@ -187,8 +197,10 @@ function VenueCardPreview({ venueData }) {
             />
           )
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-surface-card to-black">
-            <span className="text-xl font-medium text-gray-500">No Images</span>
+          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-surface-overlay to-black">
+            <span className="text-xl font-medium text-content-faint">
+              No Images
+            </span>
           </div>
         )}
 
@@ -216,7 +228,7 @@ function VenueCardPreview({ venueData }) {
 
           <p className="my-2 text-sm text-white/80">Xkm away</p>
           <div className="my-3">
-            <span className="inline-block cursor-pointer whitespace-nowrap rounded-lg bg-emerald-500 px-6 py-2 text-[15px] font-semibold text-white transition hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+            <span className="inline-block cursor-pointer whitespace-nowrap rounded-lg bg-success px-6 py-2 text-[15px] font-semibold text-white transition hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
               Open
             </span>
           </div>
@@ -243,45 +255,63 @@ function VenueCardPreview({ venueData }) {
             />
           </div>
 
-          <div className="flex-1 overflow-y-auto rounded-t-3xl bg-surface-card p-6 shadow-[0_-4px_20px_rgba(0,0,0,0.5)] [scrollbar-width:thin] max-md:px-4 max-md:pb-4 max-md:pt-0">
-            <h3 className="mb-5 text-2xl font-bold text-accent">
+          <div className="flex-1 overflow-y-auto rounded-t-3xl bg-surface-overlay p-6 shadow-[0_-4px_20px_rgba(0,0,0,0.5)] [scrollbar-width:thin] max-md:px-4 max-md:pb-4 max-md:pt-0">
+            <h3 className="mb-5 font-display text-2xl font-bold text-primary">
               About this place
             </h3>
 
             <div className="mb-6">
-              <h4 className="mb-2.5 text-lg font-semibold text-white">
+              <h4 className="mb-2.5 text-lg font-semibold text-content">
                 Description
               </h4>
-              <p className="whitespace-pre-wrap break-words text-[15px] leading-relaxed text-gray-300">
+              <p className="whitespace-pre-wrap break-words text-[15px] leading-relaxed text-content-muted">
                 {description || 'No description available yet.'}
               </p>
             </div>
 
             <div className="mb-6">
-              <h4 className="mb-2.5 text-lg font-semibold text-white">
+              <h4 className="mb-2.5 text-lg font-semibold text-content">
                 Contact & Socials
               </h4>
-              <div className="text-sm leading-relaxed text-gray-300">
+              <div className="text-sm leading-relaxed text-content-muted">
                 {phone ? (
-                  <p>📞 {phone}</p>
+                  <p className="flex items-center gap-2">
+                    <PhoneIcon className="h-4 w-4" aria-hidden="true" />
+                    {phone}
+                  </p>
                 ) : (
-                  <p className="text-sm italic text-gray-500">No phone added</p>
+                  <p className="text-sm italic text-content-faint">
+                    No phone added
+                  </p>
                 )}
                 {website ? (
-                  <p>🌐 {website.replace(/^https?:\/\//, '')}</p>
+                  <p className="flex items-center gap-2">
+                    <GlobeAltIcon className="h-4 w-4" aria-hidden="true" />
+                    {website.replace(/^https?:\/\//, '')}
+                  </p>
                 ) : null}
                 <div className="mt-2 flex gap-2.5">
-                  {socialLinks?.instagram && <span>📷 IG</span>}
-                  {socialLinks?.tiktok && <span>🎵 TT</span>}
+                  {socialLinks?.instagram && (
+                    <span className="flex items-center gap-1">
+                      <CameraIcon className="h-4 w-4" aria-hidden="true" />
+                      IG
+                    </span>
+                  )}
+                  {socialLinks?.tiktok && (
+                    <span className="flex items-center gap-1">
+                      <MusicalNoteIcon className="h-4 w-4" aria-hidden="true" />
+                      TT
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
 
             <div className="pb-12">
-              <h4 className="mb-2.5 text-lg font-semibold text-white">
+              <h4 className="mb-2.5 text-lg font-semibold text-content">
                 Operating Hours
               </h4>
-              <div className="text-[13px] text-gray-300">
+              <div className="text-[13px] text-content-muted">
                 {hours ? (
                   Object.entries(hours).map(([day, time]) => (
                     <div key={day} className="mb-1 flex justify-between">
@@ -296,7 +326,7 @@ function VenueCardPreview({ venueData }) {
                     </div>
                   ))
                 ) : (
-                  <p className="text-sm italic text-gray-500">
+                  <p className="text-sm italic text-content-faint">
                     Hours will be displayed here
                   </p>
                 )}

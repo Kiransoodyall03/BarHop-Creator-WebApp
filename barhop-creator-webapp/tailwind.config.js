@@ -1,31 +1,49 @@
 const defaultTheme = require('tailwindcss/defaultTheme');
 
+// Semantic tokens resolve to CSS variables (RGB channels) defined in index.css,
+// so every color flips automatically between light and dark via the `dark` class.
+const t = (v) => `rgb(var(${v}) / <alpha-value>)`;
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: ['./src/**/*.{js,jsx,ts,tsx}'],
+  darkMode: 'class',
   theme: {
     extend: {
       fontFamily: {
-        sans: ['"DM Sans"', ...defaultTheme.fontFamily.sans],
-        display: ['"Bebas Neue"', 'cursive'],
+        sans: ['Inter', ...defaultTheme.fontFamily.sans],
+        display: ['"Space Grotesk"', ...defaultTheme.fontFamily.sans],
       },
       colors: {
         surface: {
-          deep: '#050505',
-          DEFAULT: '#0f0f0f',
-          card: '#15121c',
+          DEFAULT: t('--color-surface'),
+          raised: t('--color-surface-raised'),
+          overlay: t('--color-surface-overlay'),
         },
-        accent: {
-          DEFAULT: '#f5a623',
-          dim: '#e3a542',
+        content: {
+          DEFAULT: t('--color-content'),
+          muted: t('--color-content-muted'),
+          faint: t('--color-content-faint'),
         },
-        neon: {
-          violet: '#0072b9',
+        edge: {
+          DEFAULT: t('--color-edge'),
+          strong: t('--color-edge-strong'),
         },
+        primary: {
+          DEFAULT: t('--color-primary'),
+          hover: t('--color-primary-hover'),
+        },
+        'on-primary': t('--color-on-primary'),
+        secondary: { DEFAULT: t('--color-secondary') },
+        'on-secondary': t('--color-on-secondary'),
+        success: t('--color-success'),
+        danger: t('--color-danger'),
       },
       boxShadow: {
-        'glow-amber': '0 0 24px rgba(245, 166, 35, 0.25)',
-        'glow-violet': '0 0 28px rgba(157, 107, 255, 0.30)',
+        card: 'var(--shadow-card)',
+        'card-hover': 'var(--shadow-card-hover)',
+        'glow-primary': '0 0 24px rgb(255 77 109 / 0.35)',
+        'glow-gold': '0 0 24px rgb(255 184 77 / 0.30)',
       },
       keyframes: {
         'toast-in': {

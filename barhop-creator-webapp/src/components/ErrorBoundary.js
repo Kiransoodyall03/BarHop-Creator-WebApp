@@ -1,4 +1,6 @@
 import React from 'react';
+import { FaceFrownIcon } from '@heroicons/react/24/outline';
+import { buttonClasses } from './ui/Button';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -29,23 +31,26 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="flex min-h-screen items-center justify-center bg-surface-deep px-4 text-gray-100">
-          <div className="w-full max-w-lg rounded-2xl border border-white/10 bg-surface-card p-10 text-center">
-            <div className="mb-4 text-6xl">💥</div>
-            <h1 className="mb-2 text-2xl font-bold text-white">
+        <div className="flex min-h-screen items-center justify-center bg-surface px-4 text-content">
+          <div className="w-full max-w-lg rounded-2xl border border-edge bg-surface-raised p-10 text-center shadow-card">
+            <FaceFrownIcon
+              className="mx-auto mb-4 h-12 w-12 text-danger"
+              aria-hidden="true"
+            />
+            <h1 className="mb-2 font-display text-2xl font-bold text-content">
               Oops! Something went wrong
             </h1>
-            <p className="mb-6 text-gray-400">
+            <p className="mb-6 text-content-muted">
               We are sorry, but something unexpected happened. Do not worry,
               your data is safe.
             </p>
 
             {process.env.NODE_ENV === 'development' && this.state.error && (
-              <details className="mb-6 rounded-lg border border-white/10 bg-surface p-4 text-left">
-                <summary className="cursor-pointer text-sm font-medium text-gray-400">
+              <details className="mb-6 rounded-lg border border-edge bg-surface p-4 text-left">
+                <summary className="cursor-pointer text-sm font-medium text-content-muted">
                   Error Details (Development Only)
                 </summary>
-                <pre className="mt-3 max-h-48 overflow-auto whitespace-pre-wrap text-xs text-red-300">
+                <pre className="mt-3 max-h-48 overflow-auto whitespace-pre-wrap text-xs text-danger">
                   {this.state.error.toString()}
                   {this.state.errorInfo?.componentStack}
                 </pre>
@@ -54,13 +59,13 @@ class ErrorBoundary extends React.Component {
 
             <div className="flex justify-center gap-4">
               <button
-                className="rounded-lg bg-accent px-5 py-2.5 font-semibold text-black transition hover:bg-accent-dim hover:shadow-glow-amber"
+                className={buttonClasses('primary')}
                 onClick={this.handleReset}
               >
                 Go to Dashboard
               </button>
               <button
-                className="rounded-lg border border-white/15 px-5 py-2.5 font-semibold text-gray-200 transition hover:border-accent/60 hover:text-accent"
+                className={buttonClasses('secondary')}
                 onClick={() => window.location.reload()}
               >
                 Reload Page

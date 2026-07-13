@@ -49,18 +49,20 @@ jest.mock('firebase/firestore', () => ({
 
 describe('CreateVenue Component - B2B Wizard', () => {
   const mockShowError = jest.fn();
+  const mockShowSuccess = jest.fn();
 
   beforeAll(() => {
     // Mock URL.createObjectURL which is used for image previews
     global.URL.createObjectURL = jest.fn(() => 'mock-url');
-    // Mock window.alert
-    global.alert = jest.fn();
   });
 
   beforeEach(() => {
     jest.clearAllMocks();
     useAuth.mockReturnValue({ currentUser: { uid: 'user123' } });
-    useError.mockReturnValue({ showError: mockShowError });
+    useError.mockReturnValue({
+      showError: mockShowError,
+      showSuccess: mockShowSuccess,
+    });
   });
 
   const renderComponent = () =>
@@ -250,9 +252,9 @@ describe('CreateVenue Component - B2B Wizard', () => {
       // 2. Verifies images were uploaded
       expect(uploadVenueImages).toHaveBeenCalled();
 
-      // 3. Verifies success alert and routing
-      expect(global.alert).toHaveBeenCalledWith(
-        '✅ Venue created successfully!'
+      // 3. Verifies success toast and routing
+      expect(mockShowSuccess).toHaveBeenCalledWith(
+        'Venue created successfully!'
       );
       expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
     });

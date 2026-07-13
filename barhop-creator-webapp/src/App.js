@@ -7,11 +7,13 @@ import {
 } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ErrorProvider } from './context/ErrorContext';
+import { ThemeProvider } from './context/ThemeContext';
 import {
   VerificationProvider,
   useVerification,
 } from './context/VerificationContext';
 import ErrorBoundary from './components/ErrorBoundary';
+import { FullScreenSpinner } from './components/ui/Spinner';
 import Landing from './pages/Landing';
 import Register from './pages/Register';
 import Login from './pages/Login';
@@ -22,12 +24,6 @@ import Settings from './pages/Settings';
 import PricingDashboard from './pages/PricingDashboard';
 import Reservations from './pages/Reservations';
 import DashboardLayout from './components/DashboardLayout';
-
-const FullScreenSpinner = () => (
-  <div className="flex min-h-screen items-center justify-center bg-surface-deep">
-    <div className="h-10 w-10 animate-spin rounded-full border-2 border-white/10 border-t-accent"></div>
-  </div>
-);
 
 function PublicRoute({ children }) {
   const { currentUser } = useAuth();
@@ -62,7 +58,8 @@ function PrivateRoute({ children }) {
 function App() {
   return (
     <ErrorBoundary>
-      <ErrorProvider>
+      <ThemeProvider>
+        <ErrorProvider>
         <AuthProvider>
           <VerificationProvider>
             <Router>
@@ -107,7 +104,8 @@ function App() {
             </Router>
           </VerificationProvider>
         </AuthProvider>
-      </ErrorProvider>
+        </ErrorProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }

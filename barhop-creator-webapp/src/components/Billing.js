@@ -1,6 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
+import { CheckIcon } from '@heroicons/react/24/outline';
 import PricingMatrix from './PricingMatrix';
+import Card from './ui/Card';
+import { Spinner } from './ui/Spinner';
+import { buttonClasses } from './ui/Button';
 import { useAuth } from '../context/AuthContext';
 import { useError } from '../context/ErrorContext';
 import { TIER_ORDER } from '../hooks/useSubscription';
@@ -18,21 +22,21 @@ const chipBase =
 const SUBSCRIPTION_STATUS_BADGES = {
   active: {
     label: 'Active',
-    className: `${chipBase} border-emerald-500/30 bg-emerald-500/10 text-emerald-400`,
+    className: `${chipBase} border-success/30 bg-success/10 text-success`,
   },
   'non-renewing': {
     label: 'Cancelled — active until period end',
-    className: `${chipBase} border-accent/30 bg-accent/10 text-accent`,
+    className: `${chipBase} border-secondary/30 bg-secondary/10 text-secondary`,
   },
   attention: {
     label: 'Payment issue — update your card',
-    className: `${chipBase} border-red-400/40 bg-red-400/10 text-red-300`,
+    className: `${chipBase} border-danger/40 bg-danger/10 text-danger`,
   },
 };
 
 const TX_STATUS_CLASSES = {
-  success: 'bg-emerald-500/15 text-emerald-400',
-  failed: 'bg-red-400/15 text-red-300',
+  success: 'bg-success/15 text-success',
+  failed: 'bg-danger/15 text-danger',
 };
 
 const formatAmount = (amountCents, currency = 'ZAR') => {
@@ -77,11 +81,11 @@ function CancelModal({ busy, onKeep, onConfirm }) {
       data-testid="cancel-modal"
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-6 backdrop-blur-sm"
     >
-      <div className="w-full max-w-md rounded-2xl border border-white/10 bg-surface-card p-8">
-        <h3 className="text-xl font-semibold text-white">
+      <div className="w-full max-w-md rounded-2xl border border-edge bg-surface-raised p-8 shadow-card">
+        <h3 className="text-xl font-semibold text-content">
           Cancel your subscription?
         </h3>
-        <p className="mt-3 text-sm text-gray-400">
+        <p className="mt-3 text-sm text-content-muted">
           Auto-renewal stops immediately and you won&apos;t be charged again.
           You keep full access until the end of the period you&apos;ve already
           paid for — after that your venue drops to the free trial tier and
@@ -92,7 +96,7 @@ function CancelModal({ busy, onKeep, onConfirm }) {
             type="button"
             data-testid="cancel-modal-keep"
             onClick={onKeep}
-            className="rounded-lg border border-white/15 px-5 py-2.5 font-semibold text-gray-200 transition hover:border-accent/60 hover:text-accent"
+            className={buttonClasses('secondary')}
           >
             Keep Subscription
           </button>
@@ -101,7 +105,7 @@ function CancelModal({ busy, onKeep, onConfirm }) {
             data-testid="cancel-modal-confirm"
             onClick={onConfirm}
             disabled={busy}
-            className="rounded-lg bg-red-500/90 px-5 py-2.5 font-semibold text-white transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-lg bg-danger px-5 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-danger/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {busy ? 'Cancelling…' : 'Cancel Subscription'}
           </button>
@@ -124,10 +128,10 @@ function SubscriptionDetails({
   const card = subscription.card;
 
   return (
-    <div className="mt-6 border-t border-white/10 pt-6">
+    <div className="mt-6 border-t border-edge pt-6">
       <div className="grid gap-4 sm:grid-cols-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+          <p className="text-xs font-semibold uppercase tracking-wider text-content-faint">
             Status
           </p>
           <p className="mt-2">
@@ -137,16 +141,16 @@ function SubscriptionDetails({
           </p>
         </div>
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+          <p className="text-xs font-semibold uppercase tracking-wider text-content-faint">
             {isNonRenewing ? 'Access Until' : 'Next Payment'}
           </p>
           <p
             data-testid="subscription-next-payment"
-            className="mt-2 text-sm text-gray-200"
+            className="mt-2 text-sm text-content"
           >
             {formatDate(subscription.nextPaymentDate)}
             {!isNonRenewing && (
-              <span className="text-gray-500">
+              <span className="text-content-faint">
                 {' '}
                 ·{' '}
                 {formatAmount(subscription.amountCents, subscription.currency)}
@@ -156,10 +160,10 @@ function SubscriptionDetails({
           </p>
         </div>
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+          <p className="text-xs font-semibold uppercase tracking-wider text-content-faint">
             Payment Method
           </p>
-          <p data-testid="card-on-file" className="mt-2 text-sm text-gray-200">
+          <p data-testid="card-on-file" className="mt-2 text-sm text-content">
             {card
               ? `${card.brand} •••• ${card.last4} · exp ${card.expMonth}/${card.expYear}`
               : 'No card on file'}
@@ -173,7 +177,7 @@ function SubscriptionDetails({
           data-testid="update-card-button"
           onClick={onUpdateCard}
           disabled={portalBusy !== null}
-          className="rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-black transition hover:bg-accent-dim hover:shadow-glow-amber disabled:cursor-not-allowed disabled:opacity-50"
+          className={buttonClasses('primary', 'sm')}
         >
           {portalBusy === 'link' ? 'Opening…' : 'Update Payment Card'}
         </button>
@@ -183,13 +187,13 @@ function SubscriptionDetails({
             data-testid="cancel-subscription-button"
             onClick={onRequestCancel}
             disabled={portalBusy !== null}
-            className="rounded-lg border border-red-400/40 px-5 py-2.5 text-sm font-semibold text-red-300 transition hover:border-red-400 hover:bg-red-400/10 disabled:cursor-not-allowed disabled:opacity-50"
+            className={buttonClasses('danger', 'sm')}
           >
             Cancel Subscription
           </button>
         )}
       </div>
-      <p className="mt-3 text-xs text-gray-500">
+      <p className="mt-3 text-xs text-content-faint">
         Card updates open Paystack&apos;s secure hosted page — BarHop never sees
         or stores your card number.
       </p>
@@ -199,13 +203,10 @@ function SubscriptionDetails({
 
 function BillingHistory({ transactions }) {
   return (
-    <section
-      data-testid="billing-history"
-      className="rounded-2xl border border-white/10 bg-surface-card/80 p-8 backdrop-blur"
-    >
-      <h3 className="text-lg font-semibold text-white">Billing History</h3>
+    <Card as="section" data-testid="billing-history">
+      <h3 className="text-lg font-semibold text-content">Billing History</h3>
       {transactions.length === 0 ? (
-        <p className="mt-4 text-sm text-gray-500">
+        <p className="mt-4 text-sm text-content-faint">
           No charges yet — your payments will appear here.
         </p>
       ) : (
@@ -214,23 +215,24 @@ function BillingHistory({ transactions }) {
             <li
               key={tx.reference}
               data-testid={`billing-tx-${tx.reference}`}
-              className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 py-3 text-sm last:border-b-0"
+              className="flex flex-wrap items-center justify-between gap-3 border-b border-edge py-3 text-sm last:border-b-0"
             >
               <div className="flex min-w-0 flex-col">
-                <span className="font-medium text-gray-200">
+                <span className="font-medium text-content">
                   {tx.description}
                 </span>
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-content-faint">
                   {formatDate(tx.paidAt)} · Ref {tx.reference}
                 </span>
               </div>
               <div className="flex shrink-0 items-center gap-3">
-                <span className="text-gray-200">
+                <span className="text-content">
                   {formatAmount(tx.amountCents, tx.currency)}
                 </span>
                 <span
                   className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${
-                    TX_STATUS_CLASSES[tx.status] || 'bg-white/10 text-gray-300'
+                    TX_STATUS_CLASSES[tx.status] ||
+                    'bg-content/10 text-content-muted'
                   }`}
                 >
                   {tx.status}
@@ -240,7 +242,7 @@ function BillingHistory({ transactions }) {
           ))}
         </ul>
       )}
-    </section>
+    </Card>
   );
 }
 
@@ -326,36 +328,33 @@ function Billing() {
 
   return (
     <div className="flex flex-col gap-8">
-      <section
-        data-testid="billing-current-plan"
-        className="rounded-2xl border border-white/10 bg-surface-card/80 p-8 backdrop-blur"
-      >
+      <Card as="section" data-testid="billing-current-plan">
         <div className="flex flex-wrap items-start justify-between gap-6">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-content-faint">
               Current Plan
             </p>
             <div className="mt-2 flex flex-wrap items-center gap-3">
-              <h3 className="text-2xl font-semibold text-white">
+              <h3 className="font-display text-2xl font-semibold text-content">
                 {plan ? `${plan.name} Plan` : 'Free Trial'}
               </h3>
               {plan ? (
                 <span
                   data-testid="billing-active-badge"
-                  className={`${chipBase} border-emerald-500/30 bg-emerald-500/10 text-emerald-400`}
+                  className={`${chipBase} border-success/30 bg-success/10 text-success`}
                 >
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-success" />
                   Active
                 </span>
               ) : (
                 <span
-                  className={`${chipBase} border-accent/30 bg-accent/10 text-accent`}
+                  className={`${chipBase} border-primary/30 bg-primary/10 text-primary`}
                 >
                   Not Subscribed
                 </span>
               )}
             </div>
-            <p className="mt-1 text-sm text-gray-400">
+            <p className="mt-1 text-sm text-content-muted">
               {plan
                 ? plan.tagline
                 : 'Pick a plan below to publish your venue card and unlock the platform.'}
@@ -365,21 +364,24 @@ function Billing() {
           <a
             data-testid="manage-billing-link"
             href={supportHref}
-            className="rounded-lg border border-white/15 px-5 py-2.5 text-center text-sm font-semibold text-gray-200 transition hover:border-accent/60 hover:text-accent"
+            className={buttonClasses('secondary', 'sm')}
           >
             Email Billing Support
           </a>
         </div>
 
         {plan && (
-          <div className="mt-6 border-t border-white/10 pt-5">
-            <h4 className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+          <div className="mt-6 border-t border-edge pt-5">
+            <h4 className="text-xs font-semibold uppercase tracking-[0.2em] text-content-faint">
               Unlocked with your plan
             </h4>
-            <ul className="mt-3 grid gap-2.5 text-sm text-gray-300 sm:grid-cols-2">
+            <ul className="mt-3 grid gap-2.5 text-sm text-content-muted sm:grid-cols-2">
               {plan.features.map((feature) => (
                 <li key={feature} className="flex items-start gap-2">
-                  <span className="text-emerald-400">✓</span>
+                  <CheckIcon
+                    className="mt-0.5 h-4 w-4 shrink-0 text-success"
+                    aria-hidden="true"
+                  />
                   {feature}
                 </li>
               ))}
@@ -390,21 +392,21 @@ function Billing() {
         {hasBillingProfile && loadingOverview && (
           <div
             data-testid="subscription-loading"
-            className="mt-6 flex items-center gap-3 border-t border-white/10 pt-6 text-sm text-gray-500"
+            className="mt-6 flex items-center gap-3 border-t border-edge pt-6 text-sm text-content-faint"
           >
-            <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/10 border-t-accent" />
+            <Spinner size="sm" />
             Loading your subscription…
           </div>
         )}
 
         {hasBillingProfile && !loadingOverview && overviewFailed && (
-          <div className="mt-6 border-t border-white/10 pt-6 text-sm text-gray-400">
+          <div className="mt-6 border-t border-edge pt-6 text-sm text-content-muted">
             Couldn&apos;t load your subscription details.{' '}
             <button
               type="button"
               data-testid="billing-retry"
               onClick={fetchOverview}
-              className="font-semibold text-accent hover:underline"
+              className="font-semibold text-primary hover:underline"
             >
               Retry
             </button>
@@ -426,15 +428,15 @@ function Billing() {
           overview &&
           !subscription &&
           hasActivePlan && (
-            <p className="mt-6 border-t border-white/10 pt-6 text-sm text-gray-500">
+            <p className="mt-6 border-t border-edge pt-6 text-sm text-content-faint">
               We couldn&apos;t find a manageable subscription for your account —{' '}
-              <a href={supportHref} className="text-accent hover:underline">
+              <a href={supportHref} className="text-primary hover:underline">
                 email billing support
               </a>{' '}
               and we&apos;ll sort it out.
             </p>
           )}
-      </section>
+      </Card>
 
       {overview &&
         overview.transactions &&
@@ -443,12 +445,12 @@ function Billing() {
         )}
 
       <section>
-        <h3 className="mb-2 text-lg font-semibold text-white">
+        <h3 className="mb-2 text-lg font-semibold text-content">
           {hasActivePlan ? 'Change Plan' : 'Choose Your Plan'}
         </h3>
         {!activeVenue && (
-          <p className="mb-6 text-sm text-gray-400">
-            <Link to="/venue/create" className="text-accent hover:underline">
+          <p className="mb-6 text-sm text-content-muted">
+            <Link to="/venue/create" className="text-primary hover:underline">
               Create your venue card
             </Link>{' '}
             first — your plan activates and publishes it the moment payment

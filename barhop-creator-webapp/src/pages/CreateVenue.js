@@ -1,22 +1,30 @@
 import React, { useState } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
+import {
+  ArrowLeftIcon,
+  ExclamationTriangleIcon,
+  PlusIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline';
 import { useAuth } from '../context/AuthContext';
 import { createVenue, uploadVenueImages } from '../firebase/venueService';
 import VenueCardPreview from '../components/VenueCardPreview';
 import FeatureLocked from '../components/FeatureLocked';
+import { Input, Textarea } from '../components/ui/Field';
+import { buttonClasses } from '../components/ui/Button';
 import { useError } from '../context/ErrorContext';
 import { useSubscription } from '../hooks/useSubscription';
 
-const inputClass =
-  'w-full rounded-lg border border-white/10 bg-surface px-4 py-3 text-base text-white placeholder-gray-600 outline-none transition focus:border-accent/60 focus:ring-1 focus:ring-accent/40';
+const inputClass = 'py-3 text-base';
 const labelClass =
-  'text-sm font-semibold uppercase tracking-wider text-gray-400';
-const stepTitleClass = 'mb-4 text-3xl font-bold tracking-tight text-white';
+  'text-sm font-semibold uppercase tracking-wider text-content-muted';
+const stepTitleClass =
+  'mb-4 font-display text-3xl font-bold tracking-tight text-content';
 
 function CreateVenue() {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
-  const { showError } = useError();
+  const { showError, showSuccess } = useError();
   // Tier comes from the owner's existing venue (first-time creators
   // have none → trial → premium styling stays locked).
   const { activeVenue } = useOutletContext() || {};
@@ -77,7 +85,7 @@ function CreateVenue() {
         updatedAt: new Date(),
       });
 
-      alert('✅ Draft saved successfully!');
+      showSuccess('Draft saved successfully!');
     } catch (error) {
       showError('Failed to save draft. Please try again.');
     }
@@ -139,7 +147,7 @@ function CreateVenue() {
         images: imageUrls,
       });
 
-      alert('✅ Venue created successfully!');
+      showSuccess('Venue created successfully!');
       navigate('/dashboard');
     } catch (error) {
       showError(`Failed to create venue: ${error.message}`);
@@ -149,21 +157,22 @@ function CreateVenue() {
   };
 
   return (
-    <div className="flex min-h-screen flex-1 gap-8 bg-surface-deep p-8 text-gray-100 max-lg:flex-col">
+    <div className="flex min-h-screen flex-1 gap-8 bg-surface p-8 max-lg:flex-col">
       <div className="flex w-1/2 items-center justify-center max-lg:w-full">
         <VenueCardPreview venueData={venueData} currentStep={currentStep} />
       </div>
 
-      <div className="flex w-1/2 flex-col overflow-hidden rounded-2xl border border-white/10 bg-surface-card max-lg:w-full">
+      <div className="flex w-1/2 flex-col overflow-hidden rounded-2xl border border-edge bg-surface-raised shadow-card max-lg:w-full">
         {/* Focus Mode Escape Hatch */}
-        <div className="flex items-center justify-between border-b border-white/10 bg-surface px-10 py-6">
+        <div className="flex items-center justify-between border-b border-edge bg-surface-overlay px-10 py-6">
           <button
             onClick={() => navigate('/dashboard')}
-            className="flex items-center gap-2 text-sm text-gray-500 transition hover:text-accent"
+            className="flex items-center gap-2 text-sm text-content-faint transition-colors hover:text-primary"
           >
-            <span>←</span> Back to Dashboard
+            <ArrowLeftIcon className="h-4 w-4" aria-hidden="true" />
+            Back to Dashboard
           </button>
-          <span className="font-semibold tracking-wider text-white">
+          <span className="font-display font-semibold tracking-wider text-content">
             Venue Setup
           </span>
         </div>
@@ -174,13 +183,13 @@ function CreateVenue() {
               <div
                 key={step}
                 className={`h-1.5 flex-1 rounded-full transition ${
-                  currentStep >= step ? 'bg-accent' : 'bg-white/10'
+                  currentStep >= step ? 'bg-primary' : 'bg-content/10'
                 }`}
               />
             ))}
           </div>
           <button
-            className="shrink-0 rounded-lg border border-white/15 px-4 py-2 text-sm font-medium text-gray-300 transition hover:border-accent/60 hover:text-accent"
+            className={buttonClasses('secondary', 'sm', 'shrink-0')}
             onClick={handleSaveDraft}
           >
             Save Draft
@@ -219,7 +228,7 @@ function CreateVenue() {
         <div className="mt-auto flex items-center justify-end gap-4 px-10 py-6">
           {currentStep > 1 && (
             <button
-              className="mr-auto rounded-lg border border-white/15 px-6 py-3 font-semibold text-gray-200 transition hover:border-accent/60 hover:text-accent"
+              className={buttonClasses('secondary', 'lg', 'mr-auto')}
               onClick={goToPreviousStep}
             >
               Back
@@ -227,14 +236,14 @@ function CreateVenue() {
           )}
           {currentStep < 4 ? (
             <button
-              className="rounded-lg bg-accent px-6 py-3 font-semibold text-black transition hover:bg-accent-dim hover:shadow-glow-amber"
+              className={buttonClasses('primary', 'lg')}
               onClick={goToNextStep}
             >
               Next
             </button>
           ) : (
             <button
-              className="rounded-lg bg-accent px-6 py-3 font-semibold text-black transition hover:bg-accent-dim hover:shadow-glow-amber disabled:cursor-not-allowed disabled:opacity-50"
+              className={buttonClasses('primary', 'lg')}
               onClick={handleSubmit}
               disabled={loading}
             >
@@ -253,28 +262,28 @@ function Step1Identity({ venueData, updateVenueData }) {
   return (
     <div className="flex flex-col gap-4">
       <h1 className={stepTitleClass}>Venue Identity & Contact</h1>
-      <input
+      <Input
         type="text"
         className={inputClass}
         placeholder="Venue Name"
         value={venueData.title}
         onChange={(e) => updateVenueData('title', e.target.value)}
       />
-      <input
+      <Input
         type="text"
         className={inputClass}
         placeholder="Full Address"
         value={venueData.address}
         onChange={(e) => updateVenueData('address', e.target.value)}
       />
-      <input
+      <Input
         type="tel"
         className={inputClass}
         placeholder="Public Phone Number"
         value={venueData.phone}
         onChange={(e) => updateVenueData('phone', e.target.value)}
       />
-      <input
+      <Input
         type="url"
         className={inputClass}
         placeholder="Website URL"
@@ -316,7 +325,7 @@ function Step2Category({ venueData, updateVenueData }) {
   return (
     <div className="flex flex-col">
       <h1 className={stepTitleClass}>Venue Categories</h1>
-      <p className="mb-4 text-sm text-gray-500">
+      <p className="mb-4 text-sm text-content-faint">
         Select up to {MAX_CATEGORIES} categories — the first pick is your
         primary ({selected.length}/{MAX_CATEGORIES} selected)
       </p>
@@ -331,8 +340,8 @@ function Step2Category({ venueData, updateVenueData }) {
               disabled={!isSelected && atLimit}
               className={`rounded-lg border px-4 py-3 font-medium capitalize transition disabled:cursor-not-allowed disabled:opacity-40 ${
                 isSelected
-                  ? 'border-accent bg-accent/10 text-accent shadow-glow-amber'
-                  : 'border-white/10 bg-surface text-gray-300 hover:border-white/25'
+                  ? 'border-primary bg-primary/10 text-primary shadow-glow-primary'
+                  : 'border-edge bg-surface text-content-muted hover:border-edge-strong'
               }`}
               onClick={() => toggleCategory(cat)}
             >
@@ -381,33 +390,41 @@ function Step3Images({ updateVenueData, imageFiles, setImageFiles }) {
     <div className="flex flex-col">
       <h1 className={stepTitleClass}>High-Resolution Media</h1>
       {uploadError && (
-        <div className="mb-4 rounded-lg border border-red-400/40 bg-red-400/10 px-4 py-3 text-sm text-red-300">
-          ⚠️ {uploadError}
+        <div className="mb-4 flex items-start gap-2 rounded-lg border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger">
+          <ExclamationTriangleIcon
+            className="mt-0.5 h-4 w-4 shrink-0"
+            aria-hidden="true"
+          />
+          {uploadError}
         </div>
       )}
       <div className="grid grid-cols-2 gap-4">
         {[0, 1, 2, 3].map((index) => (
           <div key={`image-${index}`} className="aspect-square">
             {imageFiles[index] ? (
-              <div className="relative h-full w-full overflow-hidden rounded-xl border border-white/10">
+              <div className="relative h-full w-full overflow-hidden rounded-xl border border-edge">
                 <img
                   src={URL.createObjectURL(imageFiles[index])}
                   alt={`Upload ${index}`}
                   className="h-full w-full object-cover"
                 />
                 <button
-                  className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-sm text-white transition hover:bg-red-500"
+                  className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-white transition hover:bg-danger"
                   onClick={() => removeImage(index)}
+                  aria-label="Remove image"
                 >
-                  ✕
+                  <XMarkIcon className="h-4 w-4" aria-hidden="true" />
                 </button>
               </div>
             ) : (
               <label
-                className="flex h-full w-full cursor-pointer items-center justify-center rounded-xl border border-dashed border-white/20 bg-surface transition hover:border-accent/60 hover:bg-accent/5"
+                className="flex h-full w-full cursor-pointer items-center justify-center rounded-xl border border-dashed border-edge-strong bg-surface transition hover:border-primary/60 hover:bg-primary/5"
                 htmlFor={`image-upload-${index}`}
               >
-                <div className="text-4xl font-light text-gray-500">+</div>
+                <PlusIcon
+                  className="h-8 w-8 text-content-faint"
+                  aria-hidden="true"
+                />
                 <input
                   id={`image-upload-${index}`}
                   type="file"
@@ -427,24 +444,25 @@ function Step3Images({ updateVenueData, imageFiles, setImageFiles }) {
 
 // Premium swipe-card border options (Pro+). Keys persist to
 // venue.cardBorderStyle and drive VenueCardPreview's live shell.
+// Never rename the keys — they are stored in Firestore documents.
 const BORDER_STYLES = [
   {
     key: 'default',
     name: 'Default',
     description: 'Clean dark card',
-    swatchClass: 'border-white/15',
+    swatchClass: 'border-edge-strong',
   },
   {
     key: 'neon-glow',
     name: 'Neon Glow',
-    description: 'Violet ring & glow',
-    swatchClass: 'border-neon-violet shadow-glow-violet',
+    description: 'Coral ring & glow',
+    swatchClass: 'border-primary shadow-glow-primary',
   },
   {
     key: 'gold-trim',
     name: 'Gold Trim',
-    description: 'Amber ring & glow',
-    swatchClass: 'border-accent shadow-glow-amber',
+    description: 'Gold ring & glow',
+    swatchClass: 'border-[#FFB84D] shadow-glow-gold',
   },
 ];
 
@@ -458,18 +476,20 @@ function BorderStyleGrid({ venueData, updateVenueData }) {
           data-testid={`border-style-${style.key}`}
           className={`flex flex-col items-center gap-2 rounded-lg border px-4 py-4 transition ${
             venueData.cardBorderStyle === style.key
-              ? 'border-accent bg-accent/10 shadow-glow-amber'
-              : 'border-white/10 bg-surface hover:border-white/25'
+              ? 'border-primary bg-primary/10 shadow-glow-primary'
+              : 'border-edge bg-surface hover:border-edge-strong'
           }`}
           onClick={() => updateVenueData('cardBorderStyle', style.key)}
         >
           <span
-            className={`h-10 w-16 rounded-lg border-2 bg-surface-card ${style.swatchClass}`}
+            className={`h-10 w-16 rounded-lg border-2 bg-surface-overlay ${style.swatchClass}`}
           />
-          <span className="text-sm font-medium text-gray-200">
+          <span className="text-sm font-medium text-content">
             {style.name}
           </span>
-          <span className="text-xs text-gray-500">{style.description}</span>
+          <span className="text-xs text-content-faint">
+            {style.description}
+          </span>
         </button>
       ))}
     </div>
@@ -490,7 +510,7 @@ function Step4Operations({ venueData, updateVenueData, customBorders }) {
 
       <div className="flex flex-col gap-2">
         <label className={labelClass}>Description:</label>
-        <textarea
+        <Textarea
           className={`${inputClass} resize-y`}
           placeholder="Detail your venue's atmosphere, dress code, and minimum spends..."
           value={venueData.description}
@@ -501,21 +521,21 @@ function Step4Operations({ venueData, updateVenueData, customBorders }) {
 
       <div className="flex flex-col gap-2">
         <label className={labelClass}>Social Links:</label>
-        <input
+        <Input
           type="url"
           className={inputClass}
           placeholder="Instagram URL"
           value={venueData.socialLinks.instagram}
           onChange={(e) => handleSocialChange('instagram', e.target.value)}
         />
-        <input
+        <Input
           type="url"
           className={inputClass}
           placeholder="Facebook URL"
           value={venueData.socialLinks.facebook}
           onChange={(e) => handleSocialChange('facebook', e.target.value)}
         />
-        <input
+        <Input
           type="url"
           className={inputClass}
           placeholder="TikTok URL"
@@ -549,7 +569,7 @@ function Step4Operations({ venueData, updateVenueData, customBorders }) {
         <label className={labelClass}>
           Hours (Configure in Dashboard Settings later):
         </label>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-content-faint">
           Detailed daily hours can be configured post-launch.
         </p>
       </div>

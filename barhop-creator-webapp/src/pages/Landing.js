@@ -1,19 +1,25 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import {
+  TicketIcon,
+  ChartBarIcon,
+  UsersIcon,
+} from '@heroicons/react/24/outline';
+import { buttonClasses } from '../components/ui/Button';
 
 const FEATURES = [
   {
-    icon: '🍾',
+    Icon: TicketIcon,
     title: 'VIP Table Management',
     desc: 'Automate minimum spends, bottle service reservations, and real-time floor mapping.',
   },
   {
-    icon: '📊',
+    Icon: ChartBarIcon,
     title: 'Revenue Analytics',
     desc: 'Track per-head spend, peak hours, and entertainer ROI from a single dashboard.',
   },
   {
-    icon: '⚙️',
+    Icon: UsersIcon,
     title: 'Staff Operations',
     desc: 'Streamline payouts, manage shift schedules, and eliminate operational bottlenecks.',
   },
@@ -21,25 +27,19 @@ const FEATURES = [
 
 function Landing() {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-surface-deep text-gray-100">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-96 bg-gradient-to-b from-neon-violet/10 via-accent/5 to-transparent" />
+    <div className="relative min-h-screen overflow-hidden bg-surface">
+      <div className="hero-glow pointer-events-none absolute inset-x-0 top-0 h-96" />
 
       {/* Navbar */}
       <nav className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6">
-        <span className="font-display text-3xl tracking-wider text-white">
+        <span className="font-display text-3xl font-bold tracking-tight text-content">
           BarHop
         </span>
         <div className="flex items-center gap-3">
-          <Link
-            to="/login"
-            className="rounded-lg border border-white/15 px-4 py-2 text-sm font-semibold text-gray-200 transition hover:border-accent/60 hover:text-accent"
-          >
+          <Link to="/login" className={buttonClasses('secondary', 'sm')}>
             Log In
           </Link>
-          <Link
-            to="/register"
-            className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-black transition hover:bg-accent-dim hover:shadow-glow-amber"
-          >
+          <Link to="/register" className={buttonClasses('primary', 'sm')}>
             Get Started
           </Link>
         </div>
@@ -47,30 +47,24 @@ function Landing() {
 
       {/* Hero */}
       <main className="relative z-10 mx-auto flex max-w-5xl flex-col items-center px-6 pb-20 pt-16 text-center">
-        <div className="text-xs font-semibold uppercase tracking-[0.3em] text-accent">
+        <div className="text-xs font-semibold uppercase tracking-[0.3em] text-primary">
           Enterprise Venue Management
         </div>
-        <h1 className="mt-4 text-4xl font-bold tracking-tight text-white sm:text-5xl">
+        <h1 className="mt-4 font-display text-4xl font-bold tracking-tight text-content sm:text-5xl">
           The All-In-One Operations System for <br />
-          <span className="bg-gradient-to-r from-accent to-neon-violet bg-clip-text text-transparent">
+          <span className="text-gradient-sunset">
             High-Volume Nightclubs & Restaurants
           </span>
         </h1>
-        <p className="mx-auto mt-6 max-w-xl text-lg text-gray-400">
+        <p className="mx-auto mt-6 max-w-xl text-lg text-content-muted">
           Automate VIP table bookings, streamline entertainer payouts, and
           eliminate third-party per-cover fees to increase venue profitability.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-          <Link
-            to="/demo"
-            className="rounded-lg bg-accent px-6 py-3 font-semibold text-black transition hover:bg-accent-dim hover:shadow-glow-amber"
-          >
+          <Link to="/demo" className={buttonClasses('primary', 'lg')}>
             Book a Demo
           </Link>
-          <Link
-            to="/register"
-            className="rounded-lg border border-white/15 px-6 py-3 font-semibold text-gray-200 transition hover:border-accent/60 hover:text-accent"
-          >
+          <Link to="/register" className={buttonClasses('secondary', 'lg')}>
             Start 14-Day Free Trial
           </Link>
         </div>
@@ -80,7 +74,7 @@ function Landing() {
           <img
             src="/assets/dashboard-preview.png"
             alt="BarHop Dashboard Interface showing table management and revenue analytics"
-            className="w-full rounded-2xl border border-white/10 shadow-glow-violet"
+            className="w-full rounded-2xl border border-edge shadow-glow-primary"
           />
         </div>
       </main>
@@ -90,11 +84,14 @@ function Landing() {
         {FEATURES.map((feature) => (
           <div
             key={feature.title}
-            className="rounded-2xl border border-white/10 bg-surface-card p-8 transition hover:border-white/20"
+            className="rounded-2xl border border-edge bg-surface-raised p-8 shadow-card transition duration-200 hover:-translate-y-0.5 hover:border-edge-strong hover:shadow-card-hover motion-reduce:transform-none"
           >
-            <div className="text-3xl">{feature.icon}</div>
-            <p className="mt-4 font-semibold text-white">{feature.title}</p>
-            <p className="mt-2 text-sm text-gray-400">{feature.desc}</p>
+            <feature.Icon
+              className="h-8 w-8 text-primary"
+              aria-hidden="true"
+            />
+            <p className="mt-4 font-semibold text-content">{feature.title}</p>
+            <p className="mt-2 text-sm text-content-muted">{feature.desc}</p>
           </div>
         ))}
       </section>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
+import { Spinner } from './ui/Spinner';
 import { useAuth } from '../context/AuthContext';
 import { getVenuesByOwner } from '../firebase/venueService';
 
@@ -29,7 +30,7 @@ function DashboardLayout() {
   }, [fetchVenueForSidebar]);
 
   return (
-    <div className="flex min-h-screen bg-surface-deep max-md:flex-col">
+    <div className="flex min-h-screen bg-surface max-md:flex-col">
       {/* 1. Static Sidebar on the left */}
       <Sidebar activeVenue={activeVenue} />
 
@@ -37,7 +38,7 @@ function DashboardLayout() {
       <main className="flex-1 flex flex-col">
         {loading ? (
            <div className="flex flex-1 items-center justify-center">
-             <div className="h-10 w-10 animate-spin rounded-full border-2 border-white/10 border-t-accent"></div>
+             <Spinner />
            </div>
         ) : (
           <Outlet context={{ activeVenue }} />

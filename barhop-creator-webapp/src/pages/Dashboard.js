@@ -1,5 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import {
+  ArrowTrendingUpIcon,
+  ArrowTrendingDownIcon,
+  FireIcon,
+} from '@heroicons/react/24/outline';
 import { useAuth } from '../context/AuthContext';
 import { useError } from '../context/ErrorContext';
 import { getVenuesByOwner } from '../firebase/venueService';
@@ -8,64 +13,78 @@ import {
   aggregateAnalyticsSummary,
 } from '../firebase/analyticsService';
 import VenueCardPreview from '../components/VenueCardPreview';
+import EmptyState from '../components/ui/EmptyState';
+import { Spinner } from '../components/ui/Spinner';
+import { buttonClasses } from '../components/ui/Button';
 
-const btnPrimaryClass =
-  'inline-block rounded-lg bg-accent px-5 py-2.5 text-center font-semibold text-black transition hover:bg-accent-dim hover:shadow-glow-amber';
-const btnSecondaryClass =
-  'inline-block rounded-lg border border-white/15 px-5 py-2.5 text-center font-semibold text-gray-200 transition hover:border-accent/60 hover:text-accent';
-const dataPanelClass = 'rounded-xl border border-white/10 bg-surface p-7';
+const dataPanelClass =
+  'rounded-2xl border border-edge bg-surface-raised p-7 shadow-card';
 
 // --- Pro Sub-Components ---
 
 const MetricCard = ({ title, value, trend, positive }) => (
-  <div className="rounded-xl border border-white/10 bg-surface p-6 transition hover:-translate-y-0.5 hover:border-white/20 hover:shadow-xl">
-    <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">
+  <div className="rounded-2xl border border-edge bg-surface-raised p-6 shadow-card transition duration-200 hover:-translate-y-0.5 hover:border-edge-strong hover:shadow-card-hover motion-reduce:transform-none">
+    <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-content-faint">
       {title}
     </h3>
-    <p className="mb-2 text-4xl font-bold leading-none text-white">{value}</p>
+    <p className="mb-2 font-display text-4xl font-bold leading-none text-content">
+      {value}
+    </p>
     <span
       className={`flex items-center gap-1 text-sm font-medium ${
-        positive ? 'text-emerald-500' : 'text-red-500'
+        positive ? 'text-success' : 'text-danger'
       }`}
     >
-      {positive ? '↑' : '↓'} {trend}
+      {positive ? (
+        <ArrowTrendingUpIcon className="h-4 w-4" aria-hidden="true" />
+      ) : (
+        <ArrowTrendingDownIcon className="h-4 w-4" aria-hidden="true" />
+      )}{' '}
+      {trend}
     </span>
   </div>
 );
 
-const FunnelStep = ({ label, value, percentage, color }) => (
+// Complete literal class strings per step (never template-built) so the
+// Tailwind purge keeps them.
+const FunnelStep = ({ label, value, percentage, colorClass }) => (
   <div className="flex flex-col gap-2">
     <div className="flex justify-between text-sm font-medium">
-      <span className="text-gray-400">{label}</span>
-      <span className="font-bold" style={{ color }}>
-        {value}
-      </span>
+      <span className="text-content-muted">{label}</span>
+      <span className={`font-bold ${colorClass.text}`}>{value}</span>
     </div>
-    <div className="h-2 overflow-hidden rounded bg-white/5">
+    <div className="h-2 overflow-hidden rounded bg-content/5">
       <div
-        className="h-full rounded transition-all duration-1000 ease-out"
-        style={{ width: `${percentage || 0}%`, backgroundColor: color }}
+        className={`h-full rounded transition-all duration-1000 ease-out ${colorClass.bar}`}
+        style={{ width: `${percentage || 0}%` }}
       />
     </div>
   </div>
 );
 
-// --- 🔴 EXTRACTED: DashboardContent Component ---
+const FUNNEL_COLORS = {
+  impressions: { bar: 'bg-content-faint', text: 'text-content-muted' },
+  likes: { bar: 'bg-primary', text: 'text-primary' },
+  expansions: { bar: 'bg-secondary', text: 'text-secondary' },
+  matches: { bar: 'bg-success', text: 'text-success' },
+};
+
+// --- EXTRACTED: DashboardContent Component ---
 // This is now defined OUTSIDE the Dashboard component to prevent re-creation on every render.
 const DashboardContent = ({ activeVenue, summary, weeklyData, impressions, likeRate, matchRate, maxSwipes }) => (
-  <main className="flex h-screen flex-1 flex-col gap-8 overflow-y-auto bg-surface-deep px-12 py-10 text-gray-200 max-md:h-auto max-md:overflow-visible max-md:p-6">
+  <main className="flex h-screen flex-1 flex-col gap-8 overflow-y-auto bg-surface px-12 py-10 max-md:h-auto max-md:overflow-visible max-md:p-6">
     {/* Header Area */}
-    <header className="flex items-center justify-between border-b border-white/10 pb-6 max-md:flex-col max-md:items-start max-md:gap-4">
+    <header className="flex items-center justify-between border-b border-edge pb-6 max-md:flex-col max-md:items-start max-md:gap-4">
       <div className="flex flex-col gap-2">
-        <h1 className="text-4xl font-bold tracking-tight text-white">
+        <h1 className="font-display text-4xl font-bold tracking-tight text-content">
           {activeVenue.name}
         </h1>
-        <div className="inline-flex w-fit items-center gap-2 rounded-full bg-white/5 px-3 py-1 text-sm text-gray-400">
+        <div className="inline-flex w-fit items-center gap-2 rounded-full bg-content/5 px-3 py-1 text-sm text-content-muted">
           <span
             className={`h-2 w-2 rounded-full ${
               activeVenue.published
-                ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]'
-                : 'bg-accent'
+                ? 'bg-success shadow-[0_0_8px_rgb(45_212_191_/_0.5)]'
+                : 'bg-secondary'
             }`}
           ></span>
           {activeVenue.published ? 'Live on App' : 'Draft Mode'}
@@ -74,13 +93,13 @@ const DashboardContent = ({ activeVenue, summary, weeklyData, impressions, likeR
       <div className="flex gap-4 max-md:w-full">
         <Link
           to={`/venue/preview/${activeVenue.id}`}
-          className={`${btnSecondaryClass} max-md:flex-1`}
+          className={buttonClasses('secondary', 'md', 'max-md:flex-1')}
         >
           Live Preview
         </Link>
         <Link
           to={`/venue/edit/${activeVenue.id}`}
-          className={`${btnPrimaryClass} max-md:flex-1`}
+          className={buttonClasses('primary', 'md', 'max-md:flex-1')}
         >
           Optimize Card
         </Link>
@@ -124,35 +143,35 @@ const DashboardContent = ({ activeVenue, summary, weeklyData, impressions, likeR
             {/* Live Conversion Funnel */}
             <div className={dataPanelClass}>
               <div className="mb-6 flex items-baseline justify-between">
-                <h2 className="text-xl font-semibold text-white">
+                <h2 className="text-xl font-semibold text-content">
                   Discovery Funnel
                 </h2>
-                <span className="text-sm text-gray-500">Last 30 Days</span>
+                <span className="text-sm text-content-faint">Last 30 Days</span>
               </div>
               <div className="flex flex-col gap-5">
                 <FunnelStep
                   label="Card Impressions (Views)"
                   value={summary.impressions.toLocaleString()}
                   percentage={summary.impressions > 0 ? 100 : 0}
-                  color="#555"
+                  colorClass={FUNNEL_COLORS.impressions}
                 />
                 <FunnelStep
                   label="Swiped Right (Likes)"
                   value={summary.swipedRight.toLocaleString()}
                   percentage={(summary.swipedRight / impressions) * 100}
-                  color="#f5a623"
+                  colorClass={FUNNEL_COLORS.likes}
                 />
                 <FunnelStep
                   label="Profile Expanded (Menu/Hours)"
                   value={summary.clickThroughs.toLocaleString()}
                   percentage={(summary.clickThroughs / impressions) * 100}
-                  color="#3b82f6"
+                  colorClass={FUNNEL_COLORS.expansions}
                 />
                 <FunnelStep
                   label="Group Matches (Ready to visit)"
                   value={summary.matchRate.toLocaleString()}
                   percentage={(summary.matchRate / impressions) * 100}
-                  color="#10b981"
+                  colorClass={FUNNEL_COLORS.matches}
                 />
               </div>
             </div>
@@ -160,7 +179,7 @@ const DashboardContent = ({ activeVenue, summary, weeklyData, impressions, likeR
             {/* 7-Day Live Activity Chart */}
             <div className={dataPanelClass}>
               <div className="mb-6 flex items-baseline justify-between">
-                <h2 className="text-xl font-semibold text-white">
+                <h2 className="text-xl font-semibold text-content">
                   Swipe Activity (7 Days)
                 </h2>
               </div>
@@ -184,10 +203,10 @@ const DashboardContent = ({ activeVenue, summary, weeklyData, impressions, likeR
                         title={`${totalSwipes} swipes`}
                       >
                         <div
-                          className="w-full max-w-[40px] rounded-t-md bg-accent transition-all hover:bg-accent-dim"
+                          className="w-full max-w-[40px] rounded-t-md bg-primary transition-all hover:bg-primary-hover"
                           style={{ height: `${heightPct}%` }}
                         ></div>
-                        <span className="text-xs font-medium text-gray-500">
+                        <span className="text-xs font-medium text-content-faint">
                           {dayLabel}
                         </span>
                       </div>
@@ -195,7 +214,7 @@ const DashboardContent = ({ activeVenue, summary, weeklyData, impressions, likeR
                   })}
                 </div>
               ) : (
-                <div className="p-8 text-center text-gray-500">
+                <div className="p-8 text-center text-content-faint">
                   Awaiting first swipe data...
                 </div>
               )}
@@ -206,11 +225,11 @@ const DashboardContent = ({ activeVenue, summary, weeklyData, impressions, likeR
           <div>
             <div className={`${dataPanelClass} flex h-full flex-col items-center`}>
               <div className="mb-6 flex items-baseline justify-between">
-                <h2 className="text-xl font-semibold text-white">
+                <h2 className="text-xl font-semibold text-content">
                   Active Consumer View
                 </h2>
               </div>
-              <p className="mb-6 text-center text-sm text-gray-500">
+              <p className="mb-6 text-center text-sm text-content-faint">
                 This is exactly how your venue appears to users swiping in
                 your area.
               </p>
@@ -263,36 +282,34 @@ function Dashboard() {
       const loadDashboard = async () => {
         await fetchDashboardData();
       };
-      
+
       loadDashboard();
     }, [fetchDashboardData]);
   // --- UI States ---
 
   if (loading) {
     return (
-      <main className="flex min-h-screen flex-1 flex-col items-center justify-center gap-4 bg-surface-deep p-12">
-        <div className="h-10 w-10 animate-spin rounded-full border-2 border-white/10 border-t-accent"></div>
-        <p className="text-sm text-gray-400">Loading dashboard...</p>
+      <main className="flex min-h-screen flex-1 flex-col items-center justify-center gap-4 bg-surface p-12">
+        <Spinner />
+        <p className="text-sm text-content-muted">Loading dashboard...</p>
       </main>
     );
   }
 
   if (venues.length === 0) {
     return (
-      <main className="flex min-h-screen flex-1 items-center justify-center bg-surface-deep p-12">
-        <div className="max-w-md rounded-2xl border border-dashed border-white/20 bg-surface p-12 text-center">
-          <div className="mb-4 text-6xl">🔥</div>
-          <h2 className="mb-2 text-2xl font-bold text-white">
-            No Venue Card Created
-          </h2>
-          <p className="mb-8 leading-relaxed text-gray-500">
-            Build your Tinder-style custom venue card to start getting
-            discovered by local groups.
-          </p>
-          <Link to="/venue/create" className={btnPrimaryClass}>
-            + Create Venue Card
-          </Link>
-        </div>
+      <main className="flex min-h-screen flex-1 items-center justify-center bg-surface p-12">
+        <EmptyState
+          icon={FireIcon}
+          title="No Venue Card Created"
+          description="Build your Tinder-style custom venue card to start getting discovered by local groups."
+          className="max-w-md"
+          action={
+            <Link to="/venue/create" className={buttonClasses('primary')}>
+              + Create Venue Card
+            </Link>
+          }
+        />
       </main>
     );
   }
@@ -314,7 +331,7 @@ function Dashboard() {
     1
   );
 
-  // 🔴 Pass the calculated data as props to the extracted component
+  // Pass the calculated data as props to the extracted component
   const contentProps = {
     activeVenue,
     summary,

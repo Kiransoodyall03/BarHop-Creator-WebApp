@@ -23,6 +23,15 @@ jest.mock(
 );
 
 jest.mock('../../context/AuthContext');
+// The Appearance card's ThemeToggle needs the theme context, which the
+// real ThemeProvider only sets up in the browser (matchMedia etc.).
+jest.mock('../../context/ThemeContext', () => ({
+  useTheme: () => ({
+    theme: 'dark',
+    setTheme: jest.fn(),
+    resolvedTheme: 'dark',
+  }),
+}));
 // The tab bodies pull in Firebase-backed services — stub them out; each
 // has its own dedicated component test.
 jest.mock(

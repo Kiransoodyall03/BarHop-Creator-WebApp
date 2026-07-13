@@ -8,12 +8,12 @@ import {
 import { useAuth } from '../context/AuthContext';
 import BusinessProfile from '../components/BusinessProfile';
 import Billing from '../components/Billing';
+import Card from '../components/ui/Card';
+import Badge from '../components/ui/Badge';
+import PageHeader from '../components/ui/PageHeader';
+import ThemeToggle from '../components/ui/ThemeToggle';
+import { buttonClasses } from '../components/ui/Button';
 import { PLATFORM_LEGAL, SUPPORT_EMAIL } from '../data/platform';
-
-const cardClass =
-  'rounded-2xl border border-white/10 bg-surface-card/80 p-8 backdrop-blur';
-const secondaryButtonClass =
-  'rounded-lg border border-white/15 px-5 py-2.5 text-center text-sm font-semibold text-gray-200 transition hover:border-accent/60 hover:text-accent';
 
 const TABS = [
   { key: 'general', label: 'General' },
@@ -25,11 +25,11 @@ const TABS = [
 const InfoRow = ({ label, value }) => {
   if (!value) return null;
   return (
-    <div className="flex flex-col gap-0.5 border-b border-white/5 py-3 last:border-b-0">
-      <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+    <div className="flex flex-col gap-0.5 border-b border-edge py-3 last:border-b-0">
+      <span className="text-xs font-semibold uppercase tracking-wider text-content-faint">
         {label}
       </span>
-      <span className="text-sm text-gray-200">{value}</span>
+      <span className="text-sm text-content">{value}</span>
     </div>
   );
 };
@@ -37,36 +37,46 @@ const InfoRow = ({ label, value }) => {
 function GeneralTab({ currentUser }) {
   return (
     <div className="flex flex-col gap-6">
-      <div className={cardClass} data-testid="account-card">
-        <h3 className="mb-2 text-lg font-semibold text-white">Account</h3>
+      <Card data-testid="account-card">
+        <h3 className="mb-2 text-lg font-semibold text-content">Account</h3>
         <InfoRow label="Name" value={currentUser?.displayName} />
         <InfoRow label="Email" value={currentUser?.email} />
         <InfoRow label="Sign-in Method" value={currentUser?.provider} />
         <InfoRow label="Role" value={currentUser?.businessRole} />
-      </div>
+      </Card>
+
+      <Card data-testid="appearance-card">
+        <h3 className="text-lg font-semibold text-content">Appearance</h3>
+        <p className="mt-1 text-sm text-content-muted">
+          Choose how BarHop Creator looks. System follows your device setting.
+        </p>
+        <div className="mt-4">
+          <ThemeToggle />
+        </div>
+      </Card>
 
       {/* Ownership is verified during registration via Paystack, so this
           card is purely informational. */}
-      <div className={cardClass} data-testid="verification-verified">
+      <Card data-testid="verification-verified">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
-            <ShieldCheckIcon className="h-6 w-6 shrink-0 text-emerald-400" />
+            <ShieldCheckIcon className="h-6 w-6 shrink-0 text-success" />
             <div>
-              <h3 className="text-lg font-semibold text-white">
+              <h3 className="text-lg font-semibold text-content">
                 Business Verified
               </h3>
-              <p className="mt-1 text-sm text-gray-400">
+              <p className="mt-1 text-sm text-content-muted">
                 Your business banking details were confirmed through Paystack
                 when you registered. You can publish your venue and receive
                 payouts.
               </p>
             </div>
           </div>
-          <span className="shrink-0 rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-400">
-            Verified ✔️
-          </span>
+          <Badge variant="success" className="shrink-0">
+            Verified
+          </Badge>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }
@@ -93,11 +103,11 @@ function LegalComplianceTab({ profile, venue, onEditProfile }) {
   return (
     <div className="flex flex-col gap-6">
       {/* Section A — ECTA */}
-      <section className={cardClass} data-testid="ecta-card">
-        <h3 className="text-lg font-semibold text-white">
+      <Card as="section" data-testid="ecta-card">
+        <h3 className="text-lg font-semibold text-content">
           ECTA Section 43 Disclosures
         </h3>
-        <p className="mt-1 text-sm text-gray-400">
+        <p className="mt-1 text-sm text-content-muted">
           Statutory e-commerce disclosures for the BarHop platform under the
           Electronic Communications and Transactions Act. Keeping these accurate
           and visible protects both parties from the statutory 14-day
@@ -122,11 +132,11 @@ function LegalComplianceTab({ profile, venue, onEditProfile }) {
             value={PLATFORM_LEGAL.disputeResolution}
           />
         </div>
-      </section>
+      </Card>
 
       {/* Section B — POPIA / PAIA */}
-      <section className={cardClass} data-testid="popia-card">
-        <h3 className="text-lg font-semibold text-white">
+      <Card as="section" data-testid="popia-card">
+        <h3 className="text-lg font-semibold text-content">
           Privacy &amp; Data Protection (POPIA / PAIA)
         </h3>
         {officerName ? (
@@ -139,13 +149,16 @@ function LegalComplianceTab({ profile, venue, onEditProfile }) {
             <InfoRow label="Phone" value={profile?.informationOfficerPhone} />
           </div>
         ) : (
-          <p className="mt-3 text-sm text-gray-400" data-testid="popia-missing">
+          <p
+            className="mt-3 text-sm text-content-muted"
+            data-testid="popia-missing"
+          >
             No Information Officer registered yet — POPIA requires one to handle
             data subject requests.{' '}
             <button
               type="button"
               onClick={onEditProfile}
-              className="font-semibold text-accent hover:underline"
+              className="font-semibold text-primary hover:underline"
             >
               Add one in your Business Profile
             </button>
@@ -158,29 +171,29 @@ function LegalComplianceTab({ profile, venue, onEditProfile }) {
             target="_blank"
             rel="noreferrer"
             data-testid="paia-manual-link"
-            className={secondaryButtonClass}
+            className={buttonClasses('secondary', 'sm')}
           >
             Download Platform PAIA Manual
           </a>
           <a
             href={deletionRequestHref}
             data-testid="popia-deletion-link"
-            className={secondaryButtonClass}
+            className={buttonClasses('secondary', 'sm')}
           >
             Execute Data Subject Deletion Request
           </a>
         </div>
-      </section>
+      </Card>
 
       {/* Section C — Industry regulations */}
-      <section className={cardClass} data-testid="arb-card">
-        <h3 className="text-lg font-semibold text-white">
+      <Card as="section" data-testid="arb-card">
+        <h3 className="text-lg font-semibold text-content">
           Advertising &amp; Content Guidelines
         </h3>
-        <div className="mt-4 flex items-start gap-3 rounded-xl border border-accent/30 bg-accent/5 p-4">
-          <ExclamationTriangleIcon className="h-5 w-5 shrink-0 text-accent" />
-          <p className="text-sm text-gray-300">
-            <span className="font-semibold text-white">
+        <div className="mt-4 flex items-start gap-3 rounded-xl border border-secondary/30 bg-secondary/5 p-4">
+          <ExclamationTriangleIcon className="h-5 w-5 shrink-0 text-secondary" />
+          <p className="text-sm text-content-muted">
+            <span className="font-semibold text-content">
               ARB Alcohol Advertising Code:
             </span>{' '}
             all custom media promoting alcohol must carry the responsible
@@ -195,13 +208,11 @@ function LegalComplianceTab({ profile, venue, onEditProfile }) {
         {isAdultVenue && (
           <div
             data-testid="fpb-warning"
-            className="mt-4 flex items-start gap-3 rounded-xl border border-red-400/40 bg-red-400/10 p-4"
+            className="mt-4 flex items-start gap-3 rounded-xl border border-danger/40 bg-danger/10 p-4"
           >
-            <ShieldExclamationIcon className="h-5 w-5 shrink-0 text-red-400" />
-            <div className="text-sm text-gray-300">
-              <span className="inline-flex items-center gap-2 rounded-full border border-red-400/40 bg-red-400/10 px-3 py-0.5 text-xs font-semibold uppercase tracking-wider text-red-300">
-                FPB X18 Verification Required
-              </span>
+            <ShieldExclamationIcon className="h-5 w-5 shrink-0 text-danger" />
+            <div className="text-sm text-content-muted">
+              <Badge variant="danger">FPB X18 Verification Required</Badge>
               <p className="mt-2">
                 Your venue is categorised as Adult Entertainment. The Film and
                 Publication Board requires a commercial online distributor
@@ -211,7 +222,7 @@ function LegalComplianceTab({ profile, venue, onEditProfile }) {
                   href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(
                     '[FPB] X18 Distributor Licence Submission'
                   )}`}
-                  className="font-semibold text-red-300 underline"
+                  className="font-semibold text-danger underline"
                 >
                   our compliance desk
                 </a>{' '}
@@ -221,22 +232,22 @@ function LegalComplianceTab({ profile, venue, onEditProfile }) {
             </div>
           </div>
         )}
-      </section>
+      </Card>
 
       {/* Section D — FICA */}
-      <section className={cardClass} data-testid="fica-card">
+      <Card as="section" data-testid="fica-card">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
             {ficaVerified ? (
-              <ShieldCheckIcon className="h-6 w-6 shrink-0 text-emerald-400" />
+              <ShieldCheckIcon className="h-6 w-6 shrink-0 text-success" />
             ) : (
-              <ShieldExclamationIcon className="h-6 w-6 shrink-0 text-accent" />
+              <ShieldExclamationIcon className="h-6 w-6 shrink-0 text-secondary" />
             )}
             <div>
-              <h3 className="text-lg font-semibold text-white">
+              <h3 className="text-lg font-semibold text-content">
                 Account Verification (FICA)
               </h3>
-              <p className="mt-1 text-sm text-gray-400">
+              <p className="mt-1 text-sm text-content-muted">
                 {ficaVerified
                   ? 'Your identity and address documents are verified. Payouts and financial features are fully enabled.'
                   : 'ID and proof-of-address verification is pending. FICA verification is required before staff payouts and split payments can be enabled.'}
@@ -244,22 +255,24 @@ function LegalComplianceTab({ profile, venue, onEditProfile }) {
             </div>
           </div>
           {ficaVerified ? (
-            <span
+            <Badge
+              variant="success"
+              className="shrink-0"
               data-testid="fica-badge-verified"
-              className="shrink-0 rounded-full border border-emerald-500/30 bg-emerald-500/15 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-400"
             >
               Verified
-            </span>
+            </Badge>
           ) : (
-            <span
+            <Badge
+              variant="gold"
+              className="shrink-0"
               data-testid="fica-badge-pending"
-              className="shrink-0 rounded-full border border-accent/30 bg-accent/15 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-accent"
             >
               Verification Pending — Action Required for Payouts
-            </span>
+            </Badge>
           )}
         </div>
-      </section>
+      </Card>
     </div>
   );
 }
@@ -276,20 +289,16 @@ function Settings() {
   const profile = currentUser?.businessProfile;
 
   return (
-    <main className="min-h-screen flex-1 bg-surface-deep px-12 py-10 text-gray-100 max-md:px-6">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-white">
-          Settings &amp; Compliance
-        </h1>
-        <p className="mt-2 max-w-2xl text-sm text-gray-400">
-          Your compliance and verification hub — statutory disclosures (ECTA),
-          privacy obligations (POPIA/PAIA), advertising rules (ARB/FPB), and
-          FICA verification in one place.
-        </p>
-      </header>
+    <main className="min-h-screen flex-1 bg-surface px-12 py-10 max-md:px-6">
+      <PageHeader
+        title="Settings & Compliance"
+        subtitle="Your compliance and verification hub — statutory disclosures (ECTA), privacy obligations (POPIA/PAIA), advertising rules (ARB/FPB), and FICA verification in one place."
+        divider={false}
+        className="mb-8"
+      />
 
       <div className="flex gap-8 max-md:flex-col">
-        <aside className="w-64 shrink-0 border-r border-white/10 pr-4 max-md:w-full max-md:border-r-0 max-md:pr-0">
+        <aside className="w-64 shrink-0 border-r border-edge pr-4 max-md:w-full max-md:border-r-0 max-md:pr-0">
           <ul className="m-0 list-none space-y-1 p-0">
             {TABS.map((tab) => (
               <li key={tab.key}>
@@ -297,10 +306,10 @@ function Settings() {
                   type="button"
                   data-testid={`settings-tab-${tab.key}`}
                   onClick={() => setActiveTab(tab.key)}
-                  className={`w-full rounded-lg px-4 py-3 text-left font-semibold transition ${
+                  className={`w-full rounded-lg px-4 py-3 text-left text-sm font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 ${
                     activeTab === tab.key
-                      ? 'bg-accent/10 text-accent'
-                      : 'text-gray-500 hover:text-gray-200'
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-content-faint hover:text-content'
                   }`}
                 >
                   {tab.label}

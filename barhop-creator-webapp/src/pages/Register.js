@@ -15,15 +15,15 @@ import { callCreatePaystackSubaccount } from '../firebase/venueService';
 import { useAuth } from '../context/AuthContext';
 
 const labelClass =
-  'text-xs font-semibold uppercase tracking-wider text-gray-400';
+  'text-xs font-semibold uppercase tracking-wider text-content-muted';
 const inputClass =
-  'w-full rounded-lg border border-white/10 bg-surface px-4 py-2.5 text-sm text-white placeholder-gray-600 outline-none transition focus:border-accent/60 focus:ring-1 focus:ring-accent/40';
+  'w-full rounded-lg border border-edge bg-surface-raised px-4 py-2.5 text-sm text-content placeholder:text-content-faint outline-none transition focus:border-primary/60 focus:ring-1 focus:ring-primary/40';
 const sectionHeadingClass =
-  'mt-2 border-b border-white/10 pb-2 text-sm font-semibold text-accent';
+  'mt-2 border-b border-edge pb-2 text-sm font-semibold text-primary';
 const btnPrimaryClass =
-  'rounded-lg bg-accent px-6 py-3 font-semibold text-black transition hover:bg-accent-dim hover:shadow-glow-amber disabled:cursor-not-allowed disabled:opacity-50';
+  'rounded-lg bg-primary px-6 py-3 font-semibold text-on-primary transition hover:bg-primary-hover hover:shadow-glow-primary disabled:cursor-not-allowed disabled:opacity-50';
 const btnSecondaryClass =
-  'rounded-lg border border-white/15 px-6 py-3 font-semibold text-gray-200 transition hover:border-accent/60 hover:text-accent disabled:cursor-not-allowed disabled:opacity-50';
+  'rounded-lg border border-edge-strong px-6 py-3 font-semibold text-content transition hover:border-primary/60 hover:text-primary disabled:cursor-not-allowed disabled:opacity-50';
 
 // Paystack settlement bank codes for South Africa.
 const SA_BANKS = [
@@ -250,7 +250,7 @@ function Field({ label, optional, children }) {
       <label className={labelClass}>
         {label}
         {optional && (
-          <span className="ml-1 normal-case text-gray-600">(optional)</span>
+          <span className="ml-1 normal-case text-content-faint">(optional)</span>
         )}
       </label>
       {children}
@@ -274,7 +274,7 @@ function StepTabs({ currentStep, hasAccount, onStepClick }) {
             {index > 0 && (
               <div
                 className={`h-px flex-1 transition-colors ${
-                  index <= currentStep ? 'bg-accent/60' : 'bg-white/10'
+                  index <= currentStep ? 'bg-primary/60' : 'bg-edge'
                 }`}
               />
             )}
@@ -285,19 +285,19 @@ function StepTabs({ currentStep, hasAccount, onStepClick }) {
               disabled={!clickable}
               className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
                 isActive
-                  ? 'bg-accent/15 text-accent'
+                  ? 'bg-primary/15 text-primary'
                   : isDone
-                    ? 'text-emerald-400'
-                    : 'text-gray-600'
-              } ${clickable ? 'cursor-pointer hover:bg-white/5' : 'cursor-default'}`}
+                    ? 'text-success'
+                    : 'text-content-faint'
+              } ${clickable ? 'cursor-pointer hover:bg-content/5' : 'cursor-default'}`}
             >
               <span
                 className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[11px] ${
                   isActive
-                    ? 'border-accent bg-accent text-black'
+                    ? 'border-primary bg-primary text-on-primary'
                     : isDone
-                      ? 'border-emerald-400/60 bg-emerald-400/10'
-                      : 'border-white/15'
+                      ? 'border-success/60 bg-success/10'
+                      : 'border-edge-strong'
                 }`}
               >
                 {isDone && !isActive ? (
@@ -487,7 +487,7 @@ function Register() {
         </Field>
       </div>
 
-      <div className="my-2 flex items-center gap-3 text-xs uppercase tracking-widest text-gray-500 before:h-px before:flex-1 before:bg-white/10 after:h-px after:flex-1 after:bg-white/10">
+      <div className="my-2 flex items-center gap-3 text-xs uppercase tracking-widest text-content-faint before:h-px before:flex-1 before:bg-edge after:h-px after:flex-1 after:bg-edge">
         or
       </div>
       <div className="flex justify-center">
@@ -498,7 +498,7 @@ function Register() {
 
   const renderOwnerStep = () => (
     <div className="flex flex-col gap-4">
-      <p className="text-sm text-gray-400">
+      <p className="text-sm text-content-muted">
         Tell us about you as the person responsible for this business.
         We&apos;ll use these details if we need to contact you about your
         venue or payouts.
@@ -753,11 +753,11 @@ function Register() {
 
   const renderVerifyStep = () => (
     <div className="flex flex-col gap-4">
-      <p className="text-sm text-gray-400">
+      <p className="text-sm text-content-muted">
         To keep BarHop exclusive to real venue owners, we verify your
         business bank account through Paystack, our secure South African
         payments partner. Your details for{' '}
-        <span className="font-semibold text-white">
+        <span className="font-semibold text-content">
           {form.registeredName || 'your business'}
         </span>{' '}
         are validated directly with your bank — this also enables payouts
@@ -792,7 +792,7 @@ function Register() {
           data-testid="account-number-input"
         />
       </Field>
-      <p className="text-xs text-gray-600">
+      <p className="text-xs text-content-faint">
         Your banking details are sent directly to Paystack and are never
         stored on BarHop servers.
       </p>
@@ -808,21 +808,21 @@ function Register() {
 
   if (completed) {
     return (
-      <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-surface-deep px-4 py-12 text-gray-100">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-80 bg-gradient-to-b from-neon-violet/10 via-accent/5 to-transparent" />
+      <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-surface px-4 py-12">
+        <div className="pointer-events-none absolute inset-x-0 top-0 hero-glow h-80" />
         <div
-          className="relative w-full max-w-md rounded-2xl border border-white/10 bg-surface-card p-8 text-center"
+          className="relative w-full max-w-md rounded-2xl border border-edge bg-surface-overlay p-8 text-center"
           data-testid="registration-complete"
         >
-          <ShieldCheckIcon className="mx-auto h-12 w-12 text-emerald-400" />
-          <h1 className="mt-4 text-2xl font-bold text-white">
+          <ShieldCheckIcon className="mx-auto h-12 w-12 text-success" />
+          <h1 className="mt-4 text-2xl font-bold text-content">
             Business Verified
           </h1>
-          <p className="mt-2 text-sm text-gray-400">
+          <p className="mt-2 text-sm text-content-muted">
             Your bank account was confirmed through Paystack. Taking you to
             your dashboard…
           </p>
-          <div className="mx-auto mt-6 h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-accent" />
+          <div className="mx-auto mt-6 h-8 w-8 animate-spin rounded-full border-2 border-edge border-t-primary" />
         </div>
       </div>
     );
@@ -832,33 +832,33 @@ function Register() {
   const canGoBack = step > (currentUser || createdUid ? 1 : 0);
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-surface-deep px-4 py-12 text-gray-100">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-80 bg-gradient-to-b from-neon-violet/10 via-accent/5 to-transparent" />
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-surface px-4 py-12">
+      <div className="pointer-events-none absolute inset-x-0 top-0 hero-glow h-80" />
 
-      <div className="relative w-full max-w-2xl rounded-2xl border border-white/10 bg-surface-card p-8">
-        <Link to="/" className="font-display text-3xl tracking-wider text-white">
+      <div className="relative w-full max-w-2xl rounded-2xl border border-edge bg-surface-overlay p-8">
+        <Link to="/" className="font-display text-3xl tracking-wider text-content">
           BarHop
         </Link>
-        <h1 className="mt-4 text-2xl font-bold text-white">
+        <h1 className="mt-4 text-2xl font-bold text-content">
           Join as a Venue Owner
         </h1>
-        <p className="mt-1 text-sm text-gray-400">
+        <p className="mt-1 text-sm text-content-muted">
           BarHop is exclusive to verified business owners — set up your
           account and verify your venue in four quick steps.
         </p>
 
         {currentUser && (
-          <div className="mt-4 flex items-center justify-between rounded-lg border border-white/10 bg-surface px-4 py-3 text-sm text-gray-400">
+          <div className="mt-4 flex items-center justify-between rounded-lg border border-edge bg-surface-raised px-4 py-3 text-sm text-content-muted">
             <span>
               Completing registration as{' '}
-              <span className="font-semibold text-white">
+              <span className="font-semibold text-content">
                 {currentUser.email}
               </span>
             </span>
             <button
               type="button"
               onClick={handleSignOut}
-              className="font-semibold text-accent transition hover:text-accent-dim"
+              className="font-semibold text-primary transition hover:text-primary-hover"
             >
               Sign out
             </button>
@@ -873,7 +873,7 @@ function Register() {
 
         {error && (
           <div
-            className="mt-4 rounded-lg border border-red-400/40 bg-red-400/10 px-4 py-3 text-sm text-red-300"
+            className="mt-4 rounded-lg border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger"
             data-testid="register-error"
           >
             {error}
@@ -928,11 +928,11 @@ function Register() {
         </form>
 
         {!currentUser && (
-          <p className="mt-6 text-center text-sm text-gray-400">
+          <p className="mt-6 text-center text-sm text-content-muted">
             Already have an account?{' '}
             <Link
               to="/login"
-              className="font-semibold text-accent transition hover:text-accent-dim"
+              className="font-semibold text-primary transition hover:text-primary-hover"
             >
               Sign in
             </Link>

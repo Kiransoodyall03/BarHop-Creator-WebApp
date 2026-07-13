@@ -35,7 +35,7 @@ function FeatureLocked({
   if (variant === 'compact') {
     return (
       <div data-testid="feature-locked-compact" className="relative">
-        <span className="absolute -top-3 right-3 z-10 inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-surface-card px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-accent">
+        <span className="absolute -top-3 right-3 z-10 inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-surface-overlay px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary">
           <LockClosedIcon className="h-3 w-3" />
           {tierLabel} feature
         </span>
@@ -48,14 +48,14 @@ function FeatureLocked({
         >
           {children}
         </div>
-        <p className="mt-3 text-xs text-gray-500">
+        <p className="mt-3 text-xs text-content-faint">
           Unlock {featureName} —{' '}
           <Link
             to="/plans"
             data-testid="feature-locked-upgrade"
-            className="font-semibold text-accent hover:underline"
+            className="font-semibold text-primary hover:underline"
           >
-            Upgrade Now →
+            Upgrade Now
           </Link>
         </p>
       </div>
@@ -77,24 +77,24 @@ function FeatureLocked({
 
       <div
         data-testid="feature-locked-overlay"
-        className="absolute inset-0 z-10 flex items-center justify-center bg-surface-deep/40 p-6"
+        className="absolute inset-0 z-10 flex items-center justify-center bg-surface/40 p-6"
       >
-        <div className="w-full max-w-md rounded-2xl border border-accent/30 bg-surface-card/95 p-8 text-center shadow-glow-amber">
-          <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-accent/10">
-            <LockClosedIcon className="h-6 w-6 text-accent" />
+        <div className="w-full max-w-md rounded-2xl border border-primary/30 bg-surface-overlay/95 p-8 text-center shadow-glow-primary">
+          <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+            <LockClosedIcon className="h-6 w-6 text-primary" />
           </span>
-          <h2 className="mt-4 text-2xl font-semibold text-white">
+          <h2 className="mt-4 font-display text-2xl font-semibold text-content">
             Unlock {featureName}
           </h2>
-          <p className="mt-2 text-sm text-gray-400">{roiText}</p>
+          <p className="mt-2 text-sm text-content-muted">{roiText}</p>
           <Link
             to="/plans"
             data-testid="feature-locked-upgrade"
-            className="mt-6 inline-block rounded-lg bg-accent px-8 py-3 font-semibold text-black transition hover:bg-accent-dim hover:shadow-glow-amber"
+            className="mt-6 inline-block rounded-lg bg-primary px-8 py-3 font-semibold text-on-primary transition-colors duration-150 hover:bg-primary-hover hover:shadow-glow-primary"
           >
             Upgrade Now
           </Link>
-          <p className="mt-4 text-xs uppercase tracking-wider text-gray-500">
+          <p className="mt-4 text-xs uppercase tracking-wider text-content-faint">
             Included in the {tierLabel} plan
           </p>
         </div>

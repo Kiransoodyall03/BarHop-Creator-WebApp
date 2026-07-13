@@ -52,7 +52,7 @@ describe('VenueCardPreview Component', () => {
     expect(
       screen.getByText('A cozy local pub with great drinks.')
     ).toBeInTheDocument();
-    expect(screen.getByText('📞 555-1234')).toBeInTheDocument();
+    expect(screen.getByText('555-1234')).toBeInTheDocument();
   });
 
   it('renders a chip for every selected category', () => {
