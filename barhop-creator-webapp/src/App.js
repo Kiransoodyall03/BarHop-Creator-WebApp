@@ -23,6 +23,7 @@ import Preview from './pages/Preview';
 import Settings from './pages/Settings';
 import PricingDashboard from './pages/PricingDashboard';
 import Reservations from './pages/Reservations';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 import DashboardLayout from './components/DashboardLayout';
 
 function PublicRoute({ children }) {
@@ -66,6 +67,7 @@ function App() {
               <Routes>
                 {/* Public Routes */}
                 <Route path="/" element={<Landing />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
                 <Route
                   path="/register"
                   element={
