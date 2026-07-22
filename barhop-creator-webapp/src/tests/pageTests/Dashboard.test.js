@@ -115,9 +115,13 @@ describe('Dashboard Component - B2B Marketing UI', () => {
 
     renderWithRouter(<Dashboard />);
 
-    // Wait for the Dashboard to finish loading
+    // Wait for the Dashboard to finish loading. Target the heading
+    // specifically — the venue name also appears in the View Card
+    // switcher's options.
     await waitFor(() => {
-      expect(screen.getByText('Neon Nights Club')).toBeInTheDocument();
+      expect(
+        screen.getByRole('heading', { name: 'Neon Nights Club' })
+      ).toBeInTheDocument();
     });
 
     expect(screen.getByText('Right Swipes (Likes)')).toBeInTheDocument();
@@ -132,8 +136,8 @@ describe('Dashboard Component - B2B Marketing UI', () => {
     expect(screen.getByText('Group Matches')).toBeInTheDocument();
     expect(screen.getAllByText('5')[0]).toBeInTheDocument();
 
-    // Check if Funnel & Preview rendered
-    expect(screen.getByText('Discovery Funnel')).toBeInTheDocument();
+    // Check if the activity chart & preview rendered
+    expect(screen.getByText('Swipe Activity')).toBeInTheDocument();
     expect(screen.getByTestId('mock-venue-preview')).toBeInTheDocument();
   });
 

@@ -14,6 +14,8 @@ const CARD_BORDER_CLASSES = {
   'gold-trim': 'ring-2 ring-[#FFB84D] shadow-glow-gold',
 };
 
+// Callers must map their venue doc through `toPreviewData` in
+// src/data/venuePreview.js — this component takes `title`, not `name`.
 function VenueCardPreview({ venueData }) {
   const {
     title,

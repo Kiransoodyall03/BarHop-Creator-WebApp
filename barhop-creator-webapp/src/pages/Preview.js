@@ -1,8 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { LockClosedIcon, RectangleStackIcon } from '@heroicons/react/24/outline';
+import {
+  LockClosedIcon,
+  RectangleStackIcon,
+} from '@heroicons/react/24/outline';
 import { useAuth } from '../context/AuthContext';
 import { getVenuesByOwner, updateVenue } from '../firebase/venueService';
 import VenueCardPreview from '../components/VenueCardPreview';
+import { toPreviewData } from '../data/venuePreview';
 import EmptyState from '../components/ui/EmptyState';
 import { Select } from '../components/ui/Field';
 import { Spinner } from '../components/ui/Spinner';
@@ -53,34 +57,6 @@ function Preview() {
     const venueId = e.target.value;
     const venue = venues.find((v) => v.id === venueId);
     setSelectedVenue(venue);
-  };
-
-  // Convert venue data to match the new strict types.ts payload for the Preview Card
-  const getVenuePreviewData = (venue) => {
-    if (!venue) return null;
-
-    return {
-      title: venue.name,
-      address: venue.address,
-      phone: venue.phone || '',
-      website: venue.website || '',
-      category: venue.category || '', // Primary (legacy) category
-      categories:
-        venue.categories && venue.categories.length > 0
-          ? venue.categories
-          : venue.category
-            ? [venue.category]
-            : [],
-      images: venue.images || [],
-      video: venue.video || null,
-      description: venue.description || '',
-      socialLinks: venue.socialLinks || {
-        instagram: '',
-        facebook: '',
-        tiktok: '',
-      },
-      hours: venue.hours || null,
-    };
   };
 
   const handleTogglePublish = async () => {
@@ -146,7 +122,7 @@ function Preview() {
       <div className="flex w-1/2 items-start justify-center max-lg:w-full">
         {selectedVenue && (
           <VenueCardPreview
-            venueData={getVenuePreviewData(selectedVenue)}
+            venueData={toPreviewData(selectedVenue)}
             currentStep={4}
           />
         )}

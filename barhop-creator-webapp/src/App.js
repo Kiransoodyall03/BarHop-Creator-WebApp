@@ -61,51 +61,51 @@ function App() {
     <ErrorBoundary>
       <ThemeProvider>
         <ErrorProvider>
-        <AuthProvider>
-          <VerificationProvider>
-            <Router>
-              <Routes>
-                {/* Public Routes */}
-                <Route path="/" element={<Landing />} />
-                <Route path="/privacy" element={<PrivacyPolicy />} />
-                <Route
-                  path="/register"
-                  element={
-                    <RegisterRoute>
-                      <Register />
-                    </RegisterRoute>
-                  }
-                />
-                <Route
-                  path="/login"
-                  element={
-                    <PublicRoute>
-                      <Login />
-                    </PublicRoute>
-                  }
-                />
+          <AuthProvider>
+            <VerificationProvider>
+              <Router>
+                <Routes>
+                  {/* Public Routes */}
+                  <Route path="/" element={<Landing />} />
+                  <Route path="/privacy" element={<PrivacyPolicy />} />
+                  <Route
+                    path="/register"
+                    element={
+                      <RegisterRoute>
+                        <Register />
+                      </RegisterRoute>
+                    }
+                  />
+                  <Route
+                    path="/login"
+                    element={
+                      <PublicRoute>
+                        <Login />
+                      </PublicRoute>
+                    }
+                  />
 
-                {/* Wrapped Dashboard Routes */}
-                <Route
-                  element={
-                    <PrivateRoute>
-                      <DashboardLayout />
-                    </PrivateRoute>
-                  }
-                >
-                  {/* Every route inside here will have the Sidebar locked on the left! */}
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="/plans" element={<PricingDashboard />} />
-                  <Route path="/reservations" element={<Reservations />} />
-                  <Route path="/venue/create" element={<CreateVenue />} />
-                  <Route path="/venue/edit/:id" element={<CreateVenue />} />
-                  <Route path="/venue/preview/:id" element={<Preview />} />
-                </Route>
-              </Routes>
-            </Router>
-          </VerificationProvider>
-        </AuthProvider>
+                  {/* Wrapped Dashboard Routes */}
+                  <Route
+                    element={
+                      <PrivateRoute>
+                        <DashboardLayout />
+                      </PrivateRoute>
+                    }
+                  >
+                    {/* Every route inside here renders under the sticky TopNav. */}
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/settings" element={<Settings />} />
+                    <Route path="/plans" element={<PricingDashboard />} />
+                    <Route path="/reservations" element={<Reservations />} />
+                    <Route path="/venue/create" element={<CreateVenue />} />
+                    <Route path="/venue/edit/:id" element={<CreateVenue />} />
+                    <Route path="/venue/preview/:id" element={<Preview />} />
+                  </Route>
+                </Routes>
+              </Router>
+            </VerificationProvider>
+          </AuthProvider>
         </ErrorProvider>
       </ThemeProvider>
     </ErrorBoundary>

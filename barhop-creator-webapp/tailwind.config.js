@@ -21,6 +21,10 @@ module.exports = {
         // bg-clip-text + text-transparent for the gradient headlines.
         'brand-warm': 'linear-gradient(90deg, #E73B5A 0%, #F37110 100%)',
         'brand-cool': 'linear-gradient(90deg, #3596BC 0%, #2EB73E 100%)',
+        // Dashboard's decorative rings: white catching the light at the
+        // top-left, falling away into the #262626 canvas.
+        'brand-fade':
+          'linear-gradient(150deg, #FFFFFF 0%, #8A8A8A 45%, #0D0D0D 100%)',
       },
       colors: {
         // Fixed marketing palette — deliberately NOT CSS vars: the public

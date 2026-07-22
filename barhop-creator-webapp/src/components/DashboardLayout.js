@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Outlet } from 'react-router-dom';
-import Sidebar from './Sidebar';
+import TopNav from './TopNav';
 import { Spinner } from './ui/Spinner';
 import { useAuth } from '../context/AuthContext';
 import { getVenuesByOwner } from '../firebase/venueService';
@@ -10,7 +10,7 @@ function DashboardLayout() {
   const [activeVenue, setActiveVenue] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchVenueForSidebar = useCallback(async () => {
+  const fetchVenueForNav = useCallback(async () => {
     if (!currentUser?.uid) return;
     try {
       const userVenues = await getVenuesByOwner(currentUser.uid);
@@ -26,20 +26,20 @@ function DashboardLayout() {
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchVenueForSidebar();
-  }, [fetchVenueForSidebar]);
+    fetchVenueForNav();
+  }, [fetchVenueForNav]);
 
   return (
-    <div className="flex min-h-screen bg-surface max-md:flex-col">
-      {/* 1. Static Sidebar on the left */}
-      <Sidebar activeVenue={activeVenue} />
+    <div className="flex min-h-screen flex-col bg-surface">
+      {/* 1. Sticky top navigation */}
+      <TopNav activeVenue={activeVenue} />
 
       {/* 2. Main content area */}
-      <main className="flex-1 flex flex-col">
+      <main className="flex flex-1 flex-col">
         {loading ? (
-           <div className="flex flex-1 items-center justify-center">
-             <Spinner />
-           </div>
+          <div className="flex flex-1 items-center justify-center">
+            <Spinner />
+          </div>
         ) : (
           <Outlet context={{ activeVenue }} />
         )}
