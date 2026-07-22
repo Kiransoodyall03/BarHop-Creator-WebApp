@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { SUPPORT_EMAIL } from '../data/platform';
 
@@ -19,9 +19,9 @@ const ASSETS = {
 };
 
 const FOOTER = {
-  about: 'The About us Description',
+  about: 'This business was soley started by myself, Kiran Soodyall with the intent of creating a project that people like myself can use with their friends. I hope it reaches similar groups of friends like my own and contributes in some way to make their lives more enjoyable; however small it may be.',
   // TODO: replace with BarHop's real support number before launch.
-  phone: '+27 00 000 0000',
+  phone: '+27 61 424 7839',
   socials: {
     facebook: 'https://facebook.com/barhop',
     instagram: 'https://instagram.com/barhop',

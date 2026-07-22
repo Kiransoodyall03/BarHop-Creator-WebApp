@@ -5,7 +5,7 @@
 // before launch. The ECTA Section 43 card in Settings renders these
 // verbatim as statutory e-commerce disclosures.
 
-export const SUPPORT_EMAIL = 'support@barhop.app';
+export const SUPPORT_EMAIL = 'kiransoodyall03@gmail.com';
 
 export const PLATFORM_LEGAL = {
   providerName: 'BarHop Technologies (Pty) Ltd',
