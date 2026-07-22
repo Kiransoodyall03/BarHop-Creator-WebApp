@@ -13,8 +13,27 @@ module.exports = {
       fontFamily: {
         sans: ['Inter', ...defaultTheme.fontFamily.sans],
         display: ['"Space Grotesk"', ...defaultTheme.fontFamily.sans],
+        // Marketing body copy (Landing). The app UI stays on font-sans.
+        mono: ['"Space Mono"', ...defaultTheme.fontFamily.mono],
+      },
+      backgroundImage: {
+        // The two brand ramps from the Figma comp. Also used with
+        // bg-clip-text + text-transparent for the gradient headlines.
+        'brand-warm': 'linear-gradient(90deg, #E73B5A 0%, #F37110 100%)',
+        'brand-cool': 'linear-gradient(90deg, #3596BC 0%, #2EB73E 100%)',
       },
       colors: {
+        // Fixed marketing palette — deliberately NOT CSS vars: the public
+        // landing page renders identically regardless of the theme toggle.
+        brand: {
+          pink: '#E73B5A',
+          orange: '#F37110',
+          blue: '#3596BC',
+          green: '#2EB73E',
+          ink: '#262626',
+          muted: '#555555',
+          hairline: '#B9B9B9',
+        },
         surface: {
           DEFAULT: t('--color-surface'),
           raised: t('--color-surface-raised'),
