@@ -36,6 +36,7 @@
       "disallowLegacyRuntimeConfig": true,
       "ignore": [
         "node_modules",
+        "scripts",
         ".git",
         "firebase-debug.log",
         "firebase-debug.*.log",

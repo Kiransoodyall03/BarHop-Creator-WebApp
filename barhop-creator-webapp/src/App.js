@@ -24,11 +24,16 @@ import Settings from './pages/Settings';
 import PricingDashboard from './pages/PricingDashboard';
 import Reservations from './pages/Reservations';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import AdminDashboard from './pages/AdminDashboard';
 import DashboardLayout from './components/DashboardLayout';
+import { isAdmin } from './config/admin';
 
 function PublicRoute({ children }) {
   const { currentUser } = useAuth();
-  return currentUser ? <Navigate to="/dashboard" replace /> : children;
+  if (!currentUser) return children;
+  return (
+    <Navigate to={isAdmin(currentUser) ? '/admin' : '/dashboard'} replace />
+  );
 }
 
 // /register hosts the whole onboarding wizard, including Paystack
@@ -37,6 +42,8 @@ function PublicRoute({ children }) {
 function RegisterRoute({ children }) {
   const { currentUser } = useAuth();
   const { verificationStatus, loading } = useVerification();
+  if (currentUser && isAdmin(currentUser))
+    return <Navigate to="/admin" replace />;
   if (currentUser && loading) return <FullScreenSpinner />;
   if (currentUser && verificationStatus === 'VERIFIED')
     return <Navigate to="/dashboard" replace />;
@@ -50,9 +57,21 @@ function PrivateRoute({ children }) {
   const { currentUser } = useAuth();
   const { verificationStatus, loading } = useVerification();
   if (!currentUser) return <Navigate to="/login" replace />;
+  // Admins aren't business owners — send them to their own console rather than
+  // the verification-gated owner dashboard.
+  if (isAdmin(currentUser)) return <Navigate to="/admin" replace />;
   if (loading) return <FullScreenSpinner />;
   if (verificationStatus !== 'VERIFIED')
     return <Navigate to="/register" replace />;
+  return children;
+}
+
+// The admin console is gated purely by the account allowlist — admins skip the
+// Paystack verification the owner dashboard requires.
+function AdminRoute({ children }) {
+  const { currentUser } = useAuth();
+  if (!currentUser) return <Navigate to="/login" replace />;
+  if (!isAdmin(currentUser)) return <Navigate to="/dashboard" replace />;
   return children;
 }
 
@@ -82,6 +101,15 @@ function App() {
                       <PublicRoute>
                         <Login />
                       </PublicRoute>
+                    }
+                  />
+
+                  <Route
+                    path="/admin"
+                    element={
+                      <AdminRoute>
+                        <AdminDashboard />
+                      </AdminRoute>
                     }
                   />
 

@@ -24,6 +24,7 @@ const {onSchedule} = require("firebase-functions/v2/scheduler");
 const {defineSecret} = require("firebase-functions/params");
 const {logger} = require("firebase-functions/v2");
 const admin = require("firebase-admin");
+const {recordFoursquareUsage} = require("./foursquareUsage");
 
 // Same secret name the owner-side Foursquare proxy uses — one key, one
 // namespace, so owner venues and stubs carry matching fsq_place_ids.
@@ -33,14 +34,28 @@ const PLACES_SEARCH_URL = "https://places-api.foursquare.com/places/search";
 const PLACES_API_VERSION = "2025-06-17";
 
 // Default Foursquare category filter used when a district doc does not set its
-// own `categoryIds`. ⚠️ The NEW places-api host uses INTEGER taxonomy IDs — the
-// legacy 24-char hex IDs (e.g. 4d4b7105d754a06376d81259, "Nightlife Spot") are
-// NOT valid here. These are BEST-EFFORT — Bar (13003) + Night Club (10032) —
-// and MUST be confirmed with one live test call before the deck is trusted
-// (see the deploy notes): wrong IDs silently return coffee shops, not bars. The
-// first-run log below prints sample venue names so a mismatch is obvious.
-// Override per district via districts/{id}.categoryIds.
-const NIGHTLIFE_CATEGORY_IDS = ["13003", "10032"];
+// own `categoryIds`. These are the Places Pro/Premium taxonomy IDs (hex — from
+// Foursquare's official category reference), paired with the `fsq_category_ids`
+// search param. Curated to cover the app's genre vocabulary [bar, club, lounge,
+// pub, cocktail bar, wine bar, rooftop, live music]. Override per district via
+// districts/{id}.categoryIds. Confirm with the live test in the deploy notes;
+// the first-run log below prints sample venue names as a backstop.
+const NIGHTLIFE_CATEGORY_IDS = [
+  "4bf58dd8d48988d116941735", // Bar
+  "4bf58dd8d48988d11f941735", // Night Club
+  "4bf58dd8d48988d121941735", // Lounge
+  "4bf58dd8d48988d11b941735", // Pub
+  "4bf58dd8d48988d11e941735", // Cocktail Bar
+  "4bf58dd8d48988d123941735", // Wine Bar
+  "4bf58dd8d48988d11d941735", // Sports Bar
+  "5f2c224bb6d05514c70440a3", // Rooftop Bar
+  "4bf58dd8d48988d1d4941735", // Speakeasy
+  "56aa371ce4b08b9a8d57356c", // Beer Bar
+  "4bf58dd8d48988d155941735", // Gastropub
+  "4bf58dd8d48988d1e5931735", // Music Venue
+  "4bf58dd8d48988d1e7931735", // Jazz and Blues Venue
+  "4bf58dd8d48988d1e9931735", // Rock Club
+];
 
 // Hard ceiling on calls per run: a district registry that grows by accident
 // must not silently escalate the bill — skip the tail and log loudly.
@@ -91,13 +106,34 @@ exports.refreshDistrictVenues = onSchedule(
       const expiresAt = admin.firestore.Timestamp.fromMillis(
           now.toMillis() + SNAPSHOT_TTL_HOURS * 60 * 60 * 1000);
 
+      // Places already claimed by a PUBLISHED owner venue: the owner's real
+      // card must win, so this function never also emits a bare Foursquare stub
+      // for them. The consumer app dedupes on placeId too, but suppressing the
+      // stub at the source is the authoritative guarantee (and keeps snapshots
+      // smaller). Unpublished venues are intentionally NOT excluded — until an
+      // owner publishes, their card isn't live, so the stub is the right
+      // fallback. `.select` fetches only placeId, so this is one cheap read.
+      const claimedSnap = await db
+          .collection("venues")
+          .where("published", "==", true)
+          .select("placeId")
+          .get();
+      const claimedPlaceIds = new Set();
+      claimedSnap.forEach((doc) => {
+        const placeId = doc.get("placeId");
+        if (placeId) claimedPlaceIds.add(placeId);
+      });
+
       let succeeded = 0;
 
       // Sequential on purpose: a handful of districts a day needs no
       // concurrency, and serial calls stay well clear of Foursquare's limits.
       for (const district of batch) {
         try {
-          const venues = await searchDistrict(district, apiKey);
+          // Drop stubs for venues an owner has already published (their card
+          // replaces the auto-generated one).
+          const venues = (await searchDistrict(district, apiKey))
+              .filter((v) => !claimedPlaceIds.has(v.placeId));
 
           await db.collection("districtVenues").doc(district.id).set({
             districtId: district.id,
@@ -124,6 +160,11 @@ exports.refreshDistrictVenues = onSchedule(
           logger.error(`refreshDistrictVenues: ${district.id} failed`, error);
         }
       }
+
+      // Record this run's Foursquare spend so the admin console can track it
+      // against the free tier. Best-effort — a usage-write failure must never
+      // fail the refresh.
+      await recordFoursquareUsage(db, "refresh", batch.length).catch(() => {});
 
       // Rewrite the client-facing index LAST, from the districts that exist, so
       // locating a user costs a single read no matter how many districts there

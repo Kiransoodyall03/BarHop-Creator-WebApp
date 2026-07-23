@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import {
   ArrowLeftIcon,
+  CheckBadgeIcon,
   ExclamationTriangleIcon,
   PlusIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../context/AuthContext';
 import { createVenue, uploadVenueImages } from '../firebase/venueService';
+import { searchFoursquarePlaces } from '../firebase/foursquareService';
 import VenueCardPreview from '../components/VenueCardPreview';
 import FeatureLocked from '../components/FeatureLocked';
 import { Input, Textarea } from '../components/ui/Field';
@@ -38,6 +40,7 @@ function CreateVenue() {
 
   // Aligned perfectly with types.ts
   const [venueData, setVenueData] = useState({
+    placeId: '', // Foursquare fsq_place_id — set once ownership is confirmed
     title: '',
     address: '',
     phone: '',
@@ -92,6 +95,12 @@ function CreateVenue() {
   };
 
   const goToNextStep = () => {
+    if (currentStep === 1 && !venueData.placeId) {
+      showError(
+        'Find and select your venue on Foursquare to confirm ownership.'
+      );
+      return;
+    }
     if (currentStep < 4) setCurrentStep((prev) => prev + 1);
   };
 
@@ -100,6 +109,12 @@ function CreateVenue() {
   };
 
   const handleSubmit = async () => {
+    if (!venueData.placeId) {
+      showError('Confirm your venue on Foursquare in Step 1 to launch.');
+      setCurrentStep(1);
+      return;
+    }
+
     if (
       !venueData.title ||
       !venueData.address ||
@@ -259,9 +274,131 @@ function CreateVenue() {
 // --- STEPS COMPONENTS ---
 
 function Step1Identity({ venueData, updateVenueData }) {
+  const [query, setQuery] = useState(venueData.title || '');
+  const [area, setArea] = useState('');
+  const [results, setResults] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState('');
+
+  const runSearch = async () => {
+    if (!query.trim()) {
+      setSearchError('Enter your venue name to search.');
+      return;
+    }
+    setSearching(true);
+    setSearchError('');
+    try {
+      const found = await searchFoursquarePlaces({
+        query: query.trim(),
+        near: area.trim(),
+      });
+      setResults(found);
+      if (found.length === 0) {
+        setSearchError('No matches. Try adding the suburb or city.');
+      }
+    } catch (err) {
+      setSearchError('Place search is unavailable right now. Try again.');
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const selectPlace = (place) => {
+    updateVenueData('placeId', place.placeId);
+    updateVenueData('title', place.name);
+    if (place.address) updateVenueData('address', place.address);
+    setResults([]);
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <h1 className={stepTitleClass}>Venue Identity & Contact</h1>
+
+      {venueData.placeId ? (
+        <div className="flex items-start justify-between gap-3 rounded-lg border border-primary/40 bg-primary/10 px-4 py-3">
+          <div className="flex items-start gap-2">
+            <CheckBadgeIcon
+              className="mt-0.5 h-5 w-5 shrink-0 text-primary"
+              aria-hidden="true"
+            />
+            <div>
+              <p className="text-sm font-semibold text-content">
+                Ownership confirmed on Foursquare
+              </p>
+              <p className="text-sm text-content-faint">{venueData.title}</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="text-sm font-medium text-primary hover:underline"
+            onClick={() => updateVenueData('placeId', '')}
+          >
+            Change
+          </button>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-3 rounded-lg border border-edge bg-surface p-4">
+          <div>
+            <p className="text-sm font-semibold text-content">
+              Find your venue to confirm ownership
+            </p>
+            <p className="text-xs text-content-faint">
+              We match your Foursquare listing so your card links to the
+              consumer app. Required to launch.
+            </p>
+          </div>
+          <Input
+            type="text"
+            className={inputClass}
+            placeholder="Venue name (e.g. The Living Room)"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          <Input
+            type="text"
+            className={inputClass}
+            placeholder="Suburb / city (e.g. Maboneng, Johannesburg)"
+            value={area}
+            onChange={(e) => setArea(e.target.value)}
+          />
+          <button
+            type="button"
+            className={buttonClasses('secondary', 'sm')}
+            onClick={runSearch}
+            disabled={searching}
+          >
+            {searching ? 'Searching…' : 'Search Foursquare'}
+          </button>
+
+          {searchError && (
+            <p className="text-sm text-danger">{searchError}</p>
+          )}
+
+          {results.length > 0 && (
+            <ul className="flex flex-col gap-2">
+              {results.map((place) => (
+                <li key={place.placeId}>
+                  <button
+                    type="button"
+                    className="w-full rounded-lg border border-edge bg-surface-raised px-4 py-3 text-left transition hover:border-primary/60"
+                    onClick={() => selectPlace(place)}
+                  >
+                    <p className="text-sm font-medium text-content">
+                      {place.name}
+                    </p>
+                    {place.address && (
+                      <p className="text-xs text-content-faint">
+                        {place.address}
+                      </p>
+                    )}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
       <Input
         type="text"
         className={inputClass}

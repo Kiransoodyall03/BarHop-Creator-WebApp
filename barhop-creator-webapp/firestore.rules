@@ -28,12 +28,23 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/venues/$(venueId)).data.ownerId == request.auth.uid;
     }
 
+    // True only for allowlisted admin accounts — grants the admin console its
+    // broad READ access (live listeners run client-side, so this is required).
+    // Mirrors ADMIN_EMAILS in functions/index.js. Reads only; no admin writes.
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email == 'kiransoodyall03@gmail.com';
+    }
+
     // =========================================================
     // USERS COLLECTION
     // =========================================================
     match /users/{userId} {
-      // A user must be logged in, and their UID must perfectly match the document ID.
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      // A user must be logged in, and their UID must perfectly match the doc ID.
+      // Admins additionally get READ access for the admin console.
+      allow read: if request.auth != null
+        && (request.auth.uid == userId || isAdmin());
+      allow write: if request.auth != null && request.auth.uid == userId;
 
       // --- MOBILE APP: SWIPE HISTORY SUBCOLLECTION ---
       // Subcollection rules do NOT inherit from the parent match, so this is
@@ -54,7 +65,9 @@ service cloud.firestore {
       // full read access. The app's query filters where('published','==',true),
       // which this rule permits.
       allow read: if request.auth != null
-        && (resource.data.ownerId == request.auth.uid || resource.data.published == true);
+        && (resource.data.ownerId == request.auth.uid
+          || resource.data.published == true
+          || isAdmin());
 
       // Owners can update/delete only venues they own.
       allow update, delete: if request.auth != null && resource.data.ownerId == request.auth.uid;
@@ -151,7 +164,9 @@ service cloud.firestore {
     // radiusM, active). Pure server config — edited in the Firebase console,
     // never client-readable. The app reads districtIndex/current instead.
     match /districts/{districtId} {
-      allow read, write: if false;
+      // Server-only config; admins may read it in the console.
+      allow read: if isAdmin();
+      allow write: if false;
     }
 
     // districtIndex/current: one small doc listing active districts, so the app
@@ -165,6 +180,16 @@ service cloud.firestore {
     // fans out to every user in that district. MOBILE APP: read-only.
     match /districtVenues/{districtId} {
       allow read: if request.auth != null;
+      allow write: if false;
+    }
+
+    // =========================================================
+    // API USAGE (admin console)
+    // =========================================================
+    // Per-month Foursquare call counters written by the Cloud Functions
+    // (Admin SDK, bypasses rules). Admin-console READ only.
+    match /apiUsage/{document} {
+      allow read: if isAdmin();
       allow write: if false;
     }
 

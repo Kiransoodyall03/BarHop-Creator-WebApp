@@ -2,6 +2,7 @@ const {onCall, onRequest, HttpsError} =
   require("firebase-functions/v2/https");
 const admin = require("firebase-admin");
 const crypto = require("crypto");
+const {recordFoursquareUsage} = require("./foursquareUsage");
 
 if (!admin.apps.length) {
   admin.initializeApp();
@@ -638,4 +639,189 @@ exports.paystackWebhookHandler = onRequest(
         console.error("Paystack webhook handling error:", error);
         res.status(500).send("Webhook handler failed.");
       }
+    });
+
+// ==============================
+//  FOURSQUARE PLACE LOOKUP (owner venue ownership confirmation)
+// ==============================
+
+// Same host + version as functions/refreshDistrictVenues.js, so the
+// fsq_place_id captured here shares the namespace the scheduled district
+// refresh writes onto stubs — that is what lets the consumer app dedupe an
+// owner's real card against its bare Foursquare stub
+// (src/services/venueService.ts). KEEP THESE TWO IN SYNC with that file.
+const FSQ_SEARCH_URL = "https://places-api.foursquare.com/places/search";
+const FSQ_API_VERSION = "2025-06-17";
+
+// Proxied place search used by venue creation to CONFIRM the venue is a real
+// Foursquare place and capture its fsq_place_id (→ venues/{id}.placeId).
+// Server-side so the Foursquare key never reaches the browser bundle — a
+// REACT_APP_* key would ship to every visitor. Requests only Pro (default)
+// fields; no `fields` param, so it stays on the free/Pro tier.
+exports.searchFoursquarePlaces = onCall(
+    {secrets: ["FOURSQUARE_API_KEY"]},
+    async (request) => {
+      if (!request.auth) {
+        throw new HttpsError("unauthenticated", "User must be logged in.");
+      }
+
+      const apiKey = process.env.FOURSQUARE_API_KEY;
+      if (!apiKey) {
+        throw new HttpsError(
+            "internal", "Foursquare API key is missing in Firebase.");
+      }
+
+      const {query, near, ll} = request.data || {};
+      if (!query || !String(query).trim()) {
+        throw new HttpsError(
+            "invalid-argument", "A venue name to search for is required.");
+      }
+
+      const params = new URLSearchParams({
+        query: String(query).trim(),
+        limit: "10",
+      });
+      // Explicit coordinates win; otherwise search "near" a place name,
+      // defaulting to Johannesburg so a bare venue name still resolves.
+      if (ll && /^-?\d+(\.\d+)?,-?\d+(\.\d+)?$/.test(ll)) {
+        params.set("ll", ll);
+      } else {
+        params.set(
+            "near", (near && String(near).trim()) || "Johannesburg, ZA");
+      }
+
+      let response;
+      try {
+        response = await fetch(`${FSQ_SEARCH_URL}?${params}`, {
+          headers: {
+            "Authorization": `Bearer ${apiKey}`,
+            "X-Places-Api-Version": FSQ_API_VERSION,
+            "accept": "application/json",
+          },
+        });
+      } catch (err) {
+        throw new HttpsError("unavailable", "Could not reach Foursquare.");
+      }
+
+      if (!response.ok) {
+        console.error(`Foursquare search error (HTTP ${response.status}).`);
+        throw new HttpsError(
+            "failed-precondition", "Foursquare place search failed.");
+      }
+
+      const body = await response.json();
+      const results = (body.results || [])
+          .map((place) => {
+            const geo = (place.geocodes && place.geocodes.main) || {};
+            const loc = place.location || {};
+            return {
+              placeId: place.fsq_place_id,
+              name: place.name || "",
+              address: loc.formatted_address || loc.address || "",
+              latitude:
+                place.latitude != null ? place.latitude : geo.latitude,
+              longitude:
+                place.longitude != null ? place.longitude : geo.longitude,
+              categories: (place.categories || [])
+                  .map((c) => c.name)
+                  .filter(Boolean),
+            };
+          })
+          .filter((p) => p.placeId);
+
+      // Track the billed search call for the admin console (best-effort).
+      await recordFoursquareUsage(admin.firestore(), "search", 1)
+          .catch(() => {});
+
+      return {results};
+    });
+
+// ==============================
+//  ADMIN CONSOLE
+// ==============================
+
+// Allowlisted admin accounts. The client mirrors this to gate the /admin route
+// (src/config/admin.js), but THIS server-side check is the real control: every
+// admin callable verifies the caller's token email against it.
+const ADMIN_EMAILS = ["kiransoodyall03@gmail.com"];
+
+/**
+ * Throws unless the caller is a signed-in, allowlisted admin.
+ * @param {Object} request The callable request.
+ */
+function assertAdmin(request) {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "User must be logged in.");
+  }
+  const email = request.auth.token.email;
+  if (!email || !ADMIN_EMAILS.includes(email)) {
+    throw new HttpsError("permission-denied", "Admins only.");
+  }
+}
+
+// Revenue & subscriptions for the admin console, pulled live from Paystack:
+// MRR from active subscriptions, per-tier active counts, this month's
+// transaction volume, and the most recent successful charges. (Venue / owner /
+// usage figures are read live with Firestore listeners, not here.)
+exports.getAdminRevenue = onCall(
+    {secrets: ["PAYSTACK_SECRET_KEY"]},
+    async (request) => {
+      assertAdmin(request);
+      const secret = process.env.PAYSTACK_SECRET_KEY;
+      if (!secret) {
+        throw new HttpsError(
+            "internal", "Paystack secret key is missing in Firebase.");
+      }
+
+      // Active subscriptions → MRR (monthly-equivalent) + per-tier counts.
+      const subsBody = await paystackGet(secret, "/subscription?perPage=100");
+      const activeStatuses = ["active", "non-renewing", "attention"];
+      const byTier = {starter: 0, pro: 0, enterprise: 0};
+      let mrrCents = 0;
+      let activeSubscriptions = 0;
+      (subsBody.data || []).forEach((sub) => {
+        if (!activeStatuses.includes(sub.status)) return;
+        const plan = sub.plan || {};
+        const tier = tierFromPlanCode(plan.plan_code || sub.plan_code);
+        if (!tier) return;
+        activeSubscriptions += 1;
+        if (byTier[tier] !== undefined) byTier[tier] += 1;
+        const amount = sub.amount || plan.amount || 0;
+        const interval = plan.interval || "monthly";
+        mrrCents += /year|annual/i.test(interval) ? amount / 12 : amount;
+      });
+
+      // This month's successful transaction volume.
+      const monthStart = new Date();
+      monthStart.setUTCDate(1);
+      monthStart.setUTCHours(0, 0, 0, 0);
+      const totalsBody = await paystackGet(
+          secret, `/transaction/totals?from=${monthStart.toISOString()}`);
+      const totals = totalsBody.data || {};
+
+      // Most recent successful charges.
+      const txBody = await paystackGet(secret, "/transaction?perPage=10");
+      const recentTransactions = (txBody.data || [])
+          .filter((tx) => tx.status === "success")
+          .map((tx) => ({
+            reference: tx.reference,
+            amountCents: tx.amount,
+            currency: tx.currency || "ZAR",
+            paidAt: tx.paid_at || tx.transaction_date || null,
+            email: (tx.customer && tx.customer.email) || "",
+            plan: (tx.plan && tx.plan.name) ||
+              (tx.plan_object && tx.plan_object.name) || "",
+          }));
+
+      return {
+        generatedAt: new Date().toISOString(),
+        mrrCents: Math.round(mrrCents),
+        activeSubscriptions,
+        byTier,
+        thisMonth: {
+          volumeCents: totals.total_volume || 0,
+          count: totals.total_transactions || 0,
+        },
+        recentTransactions,
+      };
     });
