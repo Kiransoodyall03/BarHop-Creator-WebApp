@@ -8,6 +8,18 @@ if (!admin.apps.length) {
 }
 
 // ==============================
+//  DISTRICT VENUE CACHE (scheduled Foursquare refresh)
+// ==============================
+
+// Lives in its own module; re-exported here so Firebase discovers it from
+// index.js (the functions `main`). Required AFTER initializeApp so the Admin
+// SDK is ready. Deploy SCOPED — never `--only functions`, which would delete
+// the other repo's functions in this shared project:
+//   firebase deploy --only functions:refreshDistrictVenues
+exports.refreshDistrictVenues =
+  require("./refreshDistrictVenues").refreshDistrictVenues;
+
+// ==============================
 //  SHARED CONFIG
 // ==============================
 
