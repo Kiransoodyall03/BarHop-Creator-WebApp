@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Outlet } from 'react-router-dom';
 import TopNav from './TopNav';
-import { Spinner } from './ui/Spinner';
+import { BrandSpinner } from './ui/Brand';
 import { useAuth } from '../context/AuthContext';
 import { getVenuesByOwner } from '../firebase/venueService';
 
@@ -30,7 +30,9 @@ function DashboardLayout() {
   }, [fetchVenueForNav]);
 
   return (
-    <div className="flex min-h-screen flex-col bg-surface">
+    // The whole authenticated shell sits on the Landing page's dark band,
+    // so the canvas matches before any route has painted.
+    <div className="flex min-h-screen flex-col bg-brand-ink">
       {/* 1. Sticky top navigation */}
       <TopNav activeVenue={activeVenue} />
 
@@ -38,7 +40,7 @@ function DashboardLayout() {
       <main className="flex flex-1 flex-col">
         {loading ? (
           <div className="flex flex-1 items-center justify-center">
-            <Spinner />
+            <BrandSpinner />
           </div>
         ) : (
           <Outlet context={{ activeVenue }} />

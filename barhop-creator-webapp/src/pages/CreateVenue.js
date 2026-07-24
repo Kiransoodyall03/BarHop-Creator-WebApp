@@ -12,16 +12,22 @@ import { createVenue, uploadVenueImages } from '../firebase/venueService';
 import { searchFoursquarePlaces } from '../firebase/foursquareService';
 import VenueCardPreview from '../components/VenueCardPreview';
 import FeatureLocked from '../components/FeatureLocked';
-import { Input, Textarea } from '../components/ui/Field';
-import { buttonClasses } from '../components/ui/Button';
+import {
+  BrandInput,
+  BrandLabel,
+  BrandTextarea,
+  PageShell,
+  PANEL,
+  RING_SETS,
+  SegmentedRule,
+  WELL,
+  brandButton,
+} from '../components/ui/Brand';
 import { useError } from '../context/ErrorContext';
 import { useSubscription } from '../hooks/useSubscription';
 
-const inputClass = 'py-3 text-base';
-const labelClass =
-  'text-sm font-semibold uppercase tracking-wider text-content-muted';
 const stepTitleClass =
-  'mb-4 font-display text-3xl font-bold tracking-tight text-content';
+  'font-display text-2xl font-bold tracking-tight text-white sm:text-3xl';
 
 function CreateVenue() {
   const { currentUser } = useAuth();
@@ -172,46 +178,52 @@ function CreateVenue() {
   };
 
   return (
-    <div className="flex min-h-screen flex-1 gap-8 bg-surface p-8 max-lg:flex-col">
-      <div className="flex w-1/2 items-center justify-center max-lg:w-full">
-        <VenueCardPreview venueData={venueData} currentStep={currentStep} />
-      </div>
-
-      <div className="flex w-1/2 flex-col overflow-hidden rounded-2xl border border-edge bg-surface-raised shadow-card max-lg:w-full">
-        {/* Focus Mode Escape Hatch */}
-        <div className="flex items-center justify-between border-b border-edge bg-surface-overlay px-10 py-6">
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="flex items-center gap-2 text-sm text-content-faint transition-colors hover:text-primary"
-          >
-            <ArrowLeftIcon className="h-4 w-4" aria-hidden="true" />
-            Back to Dashboard
-          </button>
-          <span className="font-display font-semibold tracking-wider text-content">
-            Venue Setup
-          </span>
+    <PageShell rings={RING_SETS.split} width="max-w-7xl">
+      <div className="flex gap-8 max-lg:flex-col">
+        <div className="flex w-1/2 items-center justify-center max-lg:w-full">
+          <VenueCardPreview venueData={venueData} currentStep={currentStep} />
         </div>
 
-        <div className="mb-5 flex items-center justify-between gap-6 px-10 pt-6">
-          <div className="flex flex-1 gap-2">
-            {[1, 2, 3, 4].map((step) => (
-              <div
-                key={step}
-                className={`h-1.5 flex-1 rounded-full transition ${
-                  currentStep >= step ? 'bg-primary' : 'bg-content/10'
-                }`}
-              />
-            ))}
+        <div
+          className={`${PANEL} flex w-1/2 flex-col gap-6 p-8 max-lg:w-full max-md:p-6`}
+        >
+          {/* Focus Mode Escape Hatch */}
+          <div className="flex items-center justify-between gap-4">
+            <button
+              type="button"
+              onClick={() => navigate('/dashboard')}
+              className="flex items-center gap-2 font-mono text-sm text-white/60 transition-colors hover:text-white"
+            >
+              <ArrowLeftIcon className="h-4 w-4" aria-hidden="true" />
+              Back to Dashboard
+            </button>
+            <span className="font-display text-sm font-bold uppercase tracking-wider text-white">
+              Venue Setup
+            </span>
           </div>
-          <button
-            className={buttonClasses('secondary', 'sm', 'shrink-0')}
-            onClick={handleSaveDraft}
-          >
-            Save Draft
-          </button>
-        </div>
 
-        <div className="px-10">
+          <SegmentedRule variant="warm" />
+
+          <div className="flex items-center justify-between gap-6">
+            <div className="flex flex-1 gap-2">
+              {[1, 2, 3, 4].map((step) => (
+                <div
+                  key={step}
+                  className={`h-1.5 flex-1 rounded-full transition ${
+                    currentStep >= step ? 'bg-brand-warm' : 'bg-white/15'
+                  }`}
+                />
+              ))}
+            </div>
+            <button
+              type="button"
+              className={brandButton('outline', 'sm', 'shrink-0')}
+              onClick={handleSaveDraft}
+            >
+              Save Draft
+            </button>
+          </div>
+
           {currentStep === 1 && (
             <Step1Identity
               venueData={venueData}
@@ -238,36 +250,39 @@ function CreateVenue() {
               customBorders={customBorders}
             />
           )}
-        </div>
 
-        <div className="mt-auto flex items-center justify-end gap-4 px-10 py-6">
-          {currentStep > 1 && (
-            <button
-              className={buttonClasses('secondary', 'lg', 'mr-auto')}
-              onClick={goToPreviousStep}
-            >
-              Back
-            </button>
-          )}
-          {currentStep < 4 ? (
-            <button
-              className={buttonClasses('primary', 'lg')}
-              onClick={goToNextStep}
-            >
-              Next
-            </button>
-          ) : (
-            <button
-              className={buttonClasses('primary', 'lg')}
-              onClick={handleSubmit}
-              disabled={loading}
-            >
-              {loading ? 'Creating Profile...' : 'Launch Venue'}
-            </button>
-          )}
+          <div className="mt-auto flex items-center justify-end gap-4 pt-2">
+            {currentStep > 1 && (
+              <button
+                type="button"
+                className={brandButton('outline', 'lg', 'mr-auto')}
+                onClick={goToPreviousStep}
+              >
+                Back
+              </button>
+            )}
+            {currentStep < 4 ? (
+              <button
+                type="button"
+                className={brandButton('primary', 'lg')}
+                onClick={goToNextStep}
+              >
+                Next
+              </button>
+            ) : (
+              <button
+                type="button"
+                className={brandButton('primary', 'lg')}
+                onClick={handleSubmit}
+                disabled={loading}
+              >
+                {loading ? 'Creating Profile...' : 'Launch Venue'}
+              </button>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </PageShell>
   );
 }
 
@@ -312,58 +327,60 @@ function Step1Identity({ venueData, updateVenueData }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className={stepTitleClass}>Venue Identity & Contact</h1>
+      <h1 className={stepTitleClass}>Venue Identity &amp; Contact</h1>
 
       {venueData.placeId ? (
-        <div className="flex items-start justify-between gap-3 rounded-lg border border-primary/40 bg-primary/10 px-4 py-3">
+        <div
+          className={`${WELL} flex items-start justify-between gap-3 border-brand-green/40`}
+        >
           <div className="flex items-start gap-2">
             <CheckBadgeIcon
-              className="mt-0.5 h-5 w-5 shrink-0 text-primary"
+              className="mt-0.5 h-5 w-5 shrink-0 text-brand-green"
               aria-hidden="true"
             />
             <div>
-              <p className="text-sm font-semibold text-content">
+              <p className="font-mono text-sm font-bold text-white">
                 Ownership confirmed on Foursquare
               </p>
-              <p className="text-sm text-content-faint">{venueData.title}</p>
+              <p className="font-mono text-sm text-white/60">
+                {venueData.title}
+              </p>
             </div>
           </div>
           <button
             type="button"
-            className="text-sm font-medium text-primary hover:underline"
+            className="font-mono text-sm font-bold text-brand-orange hover:underline"
             onClick={() => updateVenueData('placeId', '')}
           >
             Change
           </button>
         </div>
       ) : (
-        <div className="flex flex-col gap-3 rounded-lg border border-edge bg-surface p-4">
+        <div className={`${WELL} flex flex-col gap-3`}>
           <div>
-            <p className="text-sm font-semibold text-content">
+            <p className="font-mono text-sm font-bold text-white">
               Find your venue to confirm ownership
             </p>
-            <p className="text-xs text-content-faint">
+            <p className="font-mono text-xs text-white/55">
               We match your Foursquare listing so your card links to the
               consumer app. Required to launch.
             </p>
           </div>
-          <Input
+          <BrandInput
             type="text"
-            className={inputClass}
             placeholder="Venue name (e.g. The Living Room)"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
-          <Input
+          <BrandInput
             type="text"
-            className={inputClass}
             placeholder="Suburb / city (e.g. Maboneng, Johannesburg)"
             value={area}
             onChange={(e) => setArea(e.target.value)}
           />
           <button
             type="button"
-            className={buttonClasses('secondary', 'sm')}
+            className={brandButton('outline', 'sm', 'self-start')}
             onClick={runSearch}
             disabled={searching}
           >
@@ -371,7 +388,7 @@ function Step1Identity({ venueData, updateVenueData }) {
           </button>
 
           {searchError && (
-            <p className="text-sm text-danger">{searchError}</p>
+            <p className="font-mono text-sm text-brand-pink">{searchError}</p>
           )}
 
           {results.length > 0 && (
@@ -380,14 +397,14 @@ function Step1Identity({ venueData, updateVenueData }) {
                 <li key={place.placeId}>
                   <button
                     type="button"
-                    className="w-full rounded-lg border border-edge bg-surface-raised px-4 py-3 text-left transition hover:border-primary/60"
+                    className="w-full rounded-lg border border-white/15 bg-white/[0.06] px-4 py-3 text-left transition hover:border-brand-orange"
                     onClick={() => selectPlace(place)}
                   >
-                    <p className="text-sm font-medium text-content">
+                    <p className="font-mono text-sm font-bold text-white">
                       {place.name}
                     </p>
                     {place.address && (
-                      <p className="text-xs text-content-faint">
+                      <p className="font-mono text-xs text-white/55">
                         {place.address}
                       </p>
                     )}
@@ -399,30 +416,26 @@ function Step1Identity({ venueData, updateVenueData }) {
         </div>
       )}
 
-      <Input
+      <BrandInput
         type="text"
-        className={inputClass}
         placeholder="Venue Name"
         value={venueData.title}
         onChange={(e) => updateVenueData('title', e.target.value)}
       />
-      <Input
+      <BrandInput
         type="text"
-        className={inputClass}
         placeholder="Full Address"
         value={venueData.address}
         onChange={(e) => updateVenueData('address', e.target.value)}
       />
-      <Input
+      <BrandInput
         type="tel"
-        className={inputClass}
         placeholder="Public Phone Number"
         value={venueData.phone}
         onChange={(e) => updateVenueData('phone', e.target.value)}
       />
-      <Input
+      <BrandInput
         type="url"
-        className={inputClass}
         placeholder="Website URL"
         value={venueData.website}
         onChange={(e) => updateVenueData('website', e.target.value)}
@@ -462,7 +475,7 @@ function Step2Category({ venueData, updateVenueData }) {
   return (
     <div className="flex flex-col">
       <h1 className={stepTitleClass}>Venue Categories</h1>
-      <p className="mb-4 text-sm text-content-faint">
+      <p className="mb-4 mt-2 font-mono text-sm text-white/55">
         Select up to {MAX_CATEGORIES} categories — the first pick is your
         primary ({selected.length}/{MAX_CATEGORIES} selected)
       </p>
@@ -475,10 +488,10 @@ function Step2Category({ venueData, updateVenueData }) {
               type="button"
               data-testid={`category-${cat.replace(/\s+/g, '-')}`}
               disabled={!isSelected && atLimit}
-              className={`rounded-lg border px-4 py-3 font-medium capitalize transition disabled:cursor-not-allowed disabled:opacity-40 ${
+              className={`rounded-lg border px-4 py-3 font-mono text-sm capitalize transition disabled:cursor-not-allowed disabled:opacity-40 ${
                 isSelected
-                  ? 'border-primary bg-primary/10 text-primary shadow-glow-primary'
-                  : 'border-edge bg-surface text-content-muted hover:border-edge-strong'
+                  ? 'border-transparent bg-brand-warm font-bold text-white'
+                  : 'border-white/20 bg-white/[0.06] text-white/70 hover:border-white/45 hover:text-white'
               }`}
               onClick={() => toggleCategory(cat)}
             >
@@ -525,9 +538,11 @@ function Step3Images({ updateVenueData, imageFiles, setImageFiles }) {
 
   return (
     <div className="flex flex-col">
-      <h1 className={stepTitleClass}>High-Resolution Media</h1>
+      <h1 className={`${stepTitleClass} mb-4`}>High-Resolution Media</h1>
       {uploadError && (
-        <div className="mb-4 flex items-start gap-2 rounded-lg border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger">
+        <div
+          className={`${WELL} mb-4 flex items-start gap-2 border-brand-pink/50 font-mono text-sm text-brand-pink`}
+        >
           <ExclamationTriangleIcon
             className="mt-0.5 h-4 w-4 shrink-0"
             aria-hidden="true"
@@ -539,14 +554,15 @@ function Step3Images({ updateVenueData, imageFiles, setImageFiles }) {
         {[0, 1, 2, 3].map((index) => (
           <div key={`image-${index}`} className="aspect-square">
             {imageFiles[index] ? (
-              <div className="relative h-full w-full overflow-hidden rounded-xl border border-edge">
+              <div className="relative h-full w-full overflow-hidden rounded-xl border border-white/15">
                 <img
                   src={URL.createObjectURL(imageFiles[index])}
                   alt={`Upload ${index}`}
                   className="h-full w-full object-cover"
                 />
                 <button
-                  className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-white transition hover:bg-danger"
+                  type="button"
+                  className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-white transition hover:bg-brand-pink"
                   onClick={() => removeImage(index)}
                   aria-label="Remove image"
                 >
@@ -555,13 +571,10 @@ function Step3Images({ updateVenueData, imageFiles, setImageFiles }) {
               </div>
             ) : (
               <label
-                className="flex h-full w-full cursor-pointer items-center justify-center rounded-xl border border-dashed border-edge-strong bg-surface transition hover:border-primary/60 hover:bg-primary/5"
+                className="flex h-full w-full cursor-pointer items-center justify-center rounded-xl border border-dashed border-white/25 bg-white/[0.04] transition hover:border-brand-orange hover:bg-white/[0.08]"
                 htmlFor={`image-upload-${index}`}
               >
-                <PlusIcon
-                  className="h-8 w-8 text-content-faint"
-                  aria-hidden="true"
-                />
+                <PlusIcon className="h-8 w-8 text-white/40" aria-hidden="true" />
                 <input
                   id={`image-upload-${index}`}
                   type="file"
@@ -587,19 +600,19 @@ const BORDER_STYLES = [
     key: 'default',
     name: 'Default',
     description: 'Clean dark card',
-    swatchClass: 'border-edge-strong',
+    swatchClass: 'border-white/30',
   },
   {
     key: 'neon-glow',
     name: 'Neon Glow',
     description: 'Coral ring & glow',
-    swatchClass: 'border-primary shadow-glow-primary',
+    swatchClass: 'border-brand-pink shadow-[0_0_18px_rgba(231,59,90,0.55)]',
   },
   {
     key: 'gold-trim',
     name: 'Gold Trim',
     description: 'Gold ring & glow',
-    swatchClass: 'border-[#FFB84D] shadow-glow-gold',
+    swatchClass: 'border-brand-orange shadow-[0_0_18px_rgba(243,113,16,0.55)]',
   },
 ];
 
@@ -613,18 +626,18 @@ function BorderStyleGrid({ venueData, updateVenueData }) {
           data-testid={`border-style-${style.key}`}
           className={`flex flex-col items-center gap-2 rounded-lg border px-4 py-4 transition ${
             venueData.cardBorderStyle === style.key
-              ? 'border-primary bg-primary/10 shadow-glow-primary'
-              : 'border-edge bg-surface hover:border-edge-strong'
+              ? 'border-brand-orange bg-white/[0.08]'
+              : 'border-white/15 bg-white/[0.04] hover:border-white/35'
           }`}
           onClick={() => updateVenueData('cardBorderStyle', style.key)}
         >
           <span
-            className={`h-10 w-16 rounded-lg border-2 bg-surface-overlay ${style.swatchClass}`}
+            className={`h-10 w-16 rounded-lg border-2 bg-black/40 ${style.swatchClass}`}
           />
-          <span className="text-sm font-medium text-content">
+          <span className="font-mono text-sm font-bold text-white">
             {style.name}
           </span>
-          <span className="text-xs text-content-faint">
+          <span className="font-mono text-xs text-white/55">
             {style.description}
           </span>
         </button>
@@ -643,12 +656,12 @@ function Step4Operations({ venueData, updateVenueData, customBorders }) {
 
   return (
     <div className="flex max-h-[60vh] flex-col gap-6 overflow-y-auto pr-2.5">
-      <h1 className={stepTitleClass}>Operations & Socials</h1>
+      <h1 className={stepTitleClass}>Operations &amp; Socials</h1>
 
       <div className="flex flex-col gap-2">
-        <label className={labelClass}>Description:</label>
-        <Textarea
-          className={`${inputClass} resize-y`}
+        <BrandLabel>Description:</BrandLabel>
+        <BrandTextarea
+          className="resize-y"
           placeholder="Detail your venue's atmosphere, dress code, and minimum spends..."
           value={venueData.description}
           onChange={(e) => updateVenueData('description', e.target.value)}
@@ -657,24 +670,21 @@ function Step4Operations({ venueData, updateVenueData, customBorders }) {
       </div>
 
       <div className="flex flex-col gap-2">
-        <label className={labelClass}>Social Links:</label>
-        <Input
+        <BrandLabel>Social Links:</BrandLabel>
+        <BrandInput
           type="url"
-          className={inputClass}
           placeholder="Instagram URL"
           value={venueData.socialLinks.instagram}
           onChange={(e) => handleSocialChange('instagram', e.target.value)}
         />
-        <Input
+        <BrandInput
           type="url"
-          className={inputClass}
           placeholder="Facebook URL"
           value={venueData.socialLinks.facebook}
           onChange={(e) => handleSocialChange('facebook', e.target.value)}
         />
-        <Input
+        <BrandInput
           type="url"
-          className={inputClass}
           placeholder="TikTok URL"
           value={venueData.socialLinks.tiktok}
           onChange={(e) => handleSocialChange('tiktok', e.target.value)}
@@ -682,7 +692,7 @@ function Step4Operations({ venueData, updateVenueData, customBorders }) {
       </div>
 
       <div className="flex flex-col gap-2 pt-2">
-        <label className={labelClass}>Premium Card Styling:</label>
+        <BrandLabel>Premium Card Styling:</BrandLabel>
         {customBorders ? (
           <BorderStyleGrid
             venueData={venueData}
@@ -703,10 +713,8 @@ function Step4Operations({ venueData, updateVenueData, customBorders }) {
       </div>
 
       <div className="flex flex-col gap-2">
-        <label className={labelClass}>
-          Hours (Configure in Dashboard Settings later):
-        </label>
-        <p className="text-sm text-content-faint">
+        <BrandLabel>Hours (Configure in Dashboard Settings later):</BrandLabel>
+        <p className="font-mono text-sm text-white/55">
           Detailed daily hours can be configured post-launch.
         </p>
       </div>

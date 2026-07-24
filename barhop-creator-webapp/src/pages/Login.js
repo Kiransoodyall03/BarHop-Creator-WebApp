@@ -4,16 +4,32 @@ import GoogleButton from 'react-google-button';
 import { loginWithEmail, loginWithGoogle } from '../firebase/authService';
 import { createUserDocument } from '../firebase/userService';
 import { useError } from '../context/ErrorContext';
-import { useTheme } from '../context/ThemeContext';
-import Button from '../components/ui/Button';
-import { Label, Input } from '../components/ui/Field';
+import {
+  AUTH_RINGS,
+  Band,
+  CARD_LAYERS,
+  FIELD,
+  FIELD_LABEL,
+  GradientLine,
+  MarketingNav,
+  MarketingPage,
+  OrDivider,
+  OrbitRings,
+  SectionCopy,
+  SlabCard,
+  marketingButton,
+} from '../components/ui/Marketing';
+
+// Public sign-in. Built from the Landing page's kit: white nav and footer
+// bracketing a dark band, copy on the left behind gradient orbit rings,
+// and the form on a white slab card stacked over offset colour slabs —
+// the same construction Landing uses for its product screenshots.
 
 function Login() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const { showError, showSuccess } = useError();
-  const { resolvedTheme } = useTheme();
 
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -47,80 +63,108 @@ function Login() {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-surface px-4 py-12">
-      <div className="hero-glow pointer-events-none absolute inset-x-0 top-0 h-80" />
-
-      <div className="relative w-full max-w-md rounded-2xl border border-edge bg-surface-raised p-8 shadow-card">
-        <Link
-          to="/"
-          className="font-display text-3xl font-bold tracking-tight text-content"
-        >
-          BarHop
-        </Link>
-        <h1 className="mt-4 font-display text-2xl font-bold text-content">
-          Welcome Back
-        </h1>
-        <p className="mt-1 text-sm text-content-muted">
-          Sign in to your creator account
-        </p>
-
-        <form className="mt-6 flex flex-col gap-4" onSubmit={handleSubmit}>
-          <div className="flex flex-col gap-1.5">
-            <Label className="mb-0">Email</Label>
-            <Input
-              className="text-sm"
-              type="email"
-              name="email"
-              placeholder="jane@example.com"
-              value={formData.email}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label className="mb-0">Password</Label>
-            <Input
-              className="text-sm"
-              type="password"
-              name="password"
-              placeholder="Your password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <Button
-            type="submit"
-            className="mt-2 w-full py-3"
-            disabled={loading}
+    <MarketingPage
+      // Already on /login, so the nav drops its Login entry.
+      nav={<MarketingNav links={[]} cta={{ label: 'Get Started', to: '/register' }} />}
+    >
+      <Band
+        tone="dark"
+        copy={
+          <SectionCopy
+            as="h1"
+            tone="dark"
+            variant="warm"
+            heading={
+              <>
+                Welcome Back to
+                <br />
+                <GradientLine variant="warm">Your Night Shift</GradientLine>
+              </>
+            }
           >
-            {loading ? 'Signing in…' : 'Sign In'}
-          </Button>
-        </form>
+            Sign in to your creator account to publish venue cards, read your
+            live swipe analytics, and manage tonight&rsquo;s guestlist.
+          </SectionCopy>
+        }
+        visual={
+          <>
+            <OrbitRings rings={AUTH_RINGS.column} />
+            <div className="relative mx-auto w-full max-w-[440px]">
+              <SlabCard layers={CARD_LAYERS.warm}>
+                <h2 className="font-display text-2xl font-bold text-black">
+                  Sign In
+                </h2>
+                <p className="mt-1 font-mono text-sm text-brand-muted">
+                  Verified venue owners only.
+                </p>
 
-        <div className="my-6 flex items-center gap-3 text-xs uppercase tracking-widest text-content-faint before:h-px before:flex-1 before:bg-edge after:h-px after:flex-1 after:bg-edge">
-          or
-        </div>
+                <form className="mt-6 flex flex-col gap-4" onSubmit={handleSubmit}>
+                  <div className="flex flex-col gap-1.5">
+                    <label className={FIELD_LABEL} htmlFor="login-email">
+                      Email
+                    </label>
+                    <input
+                      id="login-email"
+                      className={FIELD}
+                      type="email"
+                      name="email"
+                      placeholder="jane@example.com"
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className={FIELD_LABEL} htmlFor="login-password">
+                      Password
+                    </label>
+                    <input
+                      id="login-password"
+                      className={FIELD}
+                      type="password"
+                      name="password"
+                      placeholder="Your password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className={marketingButton('warm', 'lg', 'mt-2 w-full')}
+                    disabled={loading}
+                  >
+                    {loading ? 'Signing in…' : 'Sign In'}
+                  </button>
+                </form>
 
-        <div className="flex justify-center">
-          <GoogleButton
-            type={resolvedTheme}
-            onClick={handleGoogle}
-            disabled={loading}
-          />
-        </div>
+                <div className="my-6">
+                  <OrDivider />
+                </div>
 
-        <p className="mt-6 text-center text-sm text-content-muted">
-          Don&apos;t have an account?{' '}
-          <Link
-            to="/register"
-            className="font-semibold text-primary transition-colors hover:text-primary-hover"
-          >
-            Sign up free
-          </Link>
-        </p>
-      </div>
-    </div>
+                <div className="flex justify-center">
+                  <GoogleButton
+                    type="light"
+                    onClick={handleGoogle}
+                    disabled={loading}
+                  />
+                </div>
+
+                <p className="mt-6 text-center font-mono text-sm text-brand-muted">
+                  Don&apos;t have an account?{' '}
+                  <Link
+                    to="/register"
+                    className="font-display font-bold text-brand-pink hover:underline"
+                  >
+                    Sign up free
+                  </Link>
+                </p>
+              </SlabCard>
+            </div>
+          </>
+        }
+      />
+    </MarketingPage>
   );
 }
 

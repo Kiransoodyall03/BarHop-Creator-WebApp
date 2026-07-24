@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import { LockClosedIcon } from '@heroicons/react/24/outline';
 import { hasTierAccess, TIER_LABELS } from '../hooks/useSubscription';
+import { brandButton, chipClasses } from './ui/Brand';
 
 // Psychological upsell wrapper: locked features stay visible (FOMO /
 // preview effect) but can't be used. Reads the active venue's tier from
@@ -35,7 +36,12 @@ function FeatureLocked({
   if (variant === 'compact') {
     return (
       <div data-testid="feature-locked-compact" className="relative">
-        <span className="absolute -top-3 right-3 z-10 inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-surface-overlay px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary">
+        <span
+          className={chipClasses(
+            'warn',
+            'absolute -top-3 right-3 z-10 bg-brand-ink text-[10px]'
+          )}
+        >
           <LockClosedIcon className="h-3 w-3" />
           {tierLabel} feature
         </span>
@@ -48,12 +54,12 @@ function FeatureLocked({
         >
           {children}
         </div>
-        <p className="mt-3 text-xs text-content-faint">
+        <p className="mt-3 font-mono text-xs text-white/50">
           Unlock {featureName} —{' '}
           <Link
             to="/plans"
             data-testid="feature-locked-upgrade"
-            className="font-semibold text-primary hover:underline"
+            className="font-bold text-brand-orange hover:underline"
           >
             Upgrade Now
           </Link>
@@ -77,24 +83,24 @@ function FeatureLocked({
 
       <div
         data-testid="feature-locked-overlay"
-        className="absolute inset-0 z-10 flex items-center justify-center bg-surface/40 p-6"
+        className="absolute inset-0 z-10 flex items-center justify-center bg-brand-ink/50 p-6"
       >
-        <div className="w-full max-w-md rounded-2xl border border-primary/30 bg-surface-overlay/95 p-8 text-center shadow-glow-primary">
-          <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-            <LockClosedIcon className="h-6 w-6 text-primary" />
+        <div className="w-full max-w-md rounded-2xl border border-white/15 bg-brand-ink/95 p-8 text-center shadow-[0_20px_45px_rgba(0,0,0,0.45)] backdrop-blur-sm">
+          <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-brand-warm">
+            <LockClosedIcon className="h-6 w-6 text-white" />
           </span>
-          <h2 className="mt-4 font-display text-2xl font-semibold text-content">
+          <h2 className="mt-4 font-display text-2xl font-bold text-white">
             Unlock {featureName}
           </h2>
-          <p className="mt-2 text-sm text-content-muted">{roiText}</p>
+          <p className="mt-2 font-mono text-sm text-white/70">{roiText}</p>
           <Link
             to="/plans"
             data-testid="feature-locked-upgrade"
-            className="mt-6 inline-block rounded-lg bg-primary px-8 py-3 font-semibold text-on-primary transition-colors duration-150 hover:bg-primary-hover hover:shadow-glow-primary"
+            className={brandButton('primary', 'lg', 'mt-6')}
           >
             Upgrade Now
           </Link>
-          <p className="mt-4 text-xs uppercase tracking-wider text-content-faint">
+          <p className="mt-4 font-mono text-xs uppercase tracking-wider text-white/50">
             Included in the {tierLabel} plan
           </p>
         </div>

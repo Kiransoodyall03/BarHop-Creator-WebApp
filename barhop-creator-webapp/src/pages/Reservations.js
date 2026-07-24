@@ -1,19 +1,28 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import FeatureLocked from '../components/FeatureLocked';
-import Button from '../components/ui/Button';
-import { Input } from '../components/ui/Field';
-import { Spinner } from '../components/ui/Spinner';
 import { useError } from '../context/ErrorContext';
 import { useSubscription } from '../hooks/useSubscription';
 import {
   createReservation,
   getTonightReservations,
 } from '../firebase/venueService';
+import {
+  BrandButton,
+  BrandInput,
+  BrandSpinner,
+  Chip,
+  chipClasses,
+  PageHeading,
+  PageShell,
+  PANEL,
+  PanelTitle,
+  RING_SETS,
+} from '../components/ui/Brand';
 
-const STATUS_CLASSES = {
-  Confirmed: 'bg-success/15 text-success',
-  Pending: 'bg-secondary/15 text-secondary',
+const STATUS_TONES = {
+  Confirmed: 'success',
+  Pending: 'warn',
 };
 
 // Believable guestlist shown (blurred) to locked tiers — pure FOMO
@@ -137,23 +146,23 @@ function ReservationsPanel({ venueId, isLocked }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="rounded-2xl border border-edge bg-surface-raised p-8 shadow-card">
-        <div className="flex items-center justify-between gap-4">
-          <h2 className="text-lg font-semibold text-content">
-            Tonight&apos;s Guestlist
-          </h2>
-          <span className="rounded-full border border-edge bg-content/5 px-3 py-1 text-xs text-content-muted">
-            {reservations.length} reservation
-            {reservations.length === 1 ? '' : 's'}
-          </span>
-        </div>
+      <div className={PANEL}>
+        <PanelTitle
+          title="Tonight's Guestlist"
+          actions={
+            <Chip>
+              {reservations.length} reservation
+              {reservations.length === 1 ? '' : 's'}
+            </Chip>
+          }
+        />
 
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <Spinner />
+            <BrandSpinner />
           </div>
         ) : reservations.length === 0 ? (
-          <p className="py-10 text-center text-sm text-content-faint">
+          <p className="py-10 text-center font-mono text-sm text-white/50">
             No reservations for tonight yet — add your first VIP booking below.
           </p>
         ) : (
@@ -162,26 +171,25 @@ function ReservationsPanel({ venueId, isLocked }) {
               <li
                 key={reservation.id}
                 data-testid={`reservation-row-${reservation.id}`}
-                className="flex items-center justify-between gap-4 border-b border-edge py-3 text-sm last:border-b-0"
+                className="flex items-center justify-between gap-4 border-b border-white/10 py-3 font-mono text-sm last:border-b-0"
               >
                 <div className="flex min-w-0 flex-col">
-                  <span className="truncate font-medium text-content">
+                  <span className="truncate font-bold text-white">
                     {reservation.guestName}
                   </span>
-                  <span className="text-xs text-content-faint">
+                  <span className="text-xs text-white/50">
                     Party of {reservation.partySize} ·{' '}
                     {reservation.tableNumber || 'Unassigned'}
                   </span>
                 </div>
                 <div className="flex shrink-0 items-center gap-3">
-                  <span className="text-content-muted">
+                  <span className="text-white/70">
                     {formatTime(reservation)}
                   </span>
                   <span
-                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                      STATUS_CLASSES[reservation.status] ||
-                      'bg-content/10 text-content-muted'
-                    }`}
+                    className={chipClasses(
+                      STATUS_TONES[reservation.status] || 'neutral'
+                    )}
                   >
                     {reservation.status || 'Pending'}
                   </span>
@@ -195,51 +203,47 @@ function ReservationsPanel({ venueId, isLocked }) {
       <form
         data-testid="add-reservation-form"
         onSubmit={handleAddReservation}
-        className="rounded-2xl border border-edge bg-surface-raised p-8 shadow-card"
+        className={PANEL}
       >
-        <h2 className="text-lg font-semibold text-content">Add Reservation</h2>
-        <div className="mt-4 grid grid-cols-4 gap-3 max-md:grid-cols-1">
-          <Input
+        <PanelTitle title="Add Reservation" />
+        <div className="mt-5 grid grid-cols-4 gap-3 max-md:grid-cols-1">
+          <BrandInput
             type="text"
-            className="text-sm"
             placeholder="Guest name"
             data-testid="reservation-guest-input"
             value={form.guestName}
             onChange={(e) => updateForm('guestName', e.target.value)}
           />
-          <Input
+          <BrandInput
             type="number"
             min="1"
-            className="text-sm"
             placeholder="Party size"
             data-testid="reservation-party-input"
             value={form.partySize}
             onChange={(e) => updateForm('partySize', e.target.value)}
           />
-          <Input
+          <BrandInput
             type="text"
-            className="text-sm"
             placeholder="Table (e.g. VIP 1)"
             data-testid="reservation-table-input"
             value={form.tableNumber}
             onChange={(e) => updateForm('tableNumber', e.target.value)}
           />
-          <Input
+          <BrandInput
             type="time"
-            className="text-sm"
             data-testid="reservation-time-input"
             value={form.time}
             onChange={(e) => updateForm('time', e.target.value)}
           />
         </div>
-        <Button
+        <BrandButton
           type="submit"
           data-testid="add-reservation-submit"
           disabled={submitting}
-          className="mt-4 px-6"
+          className="mt-5"
         >
           {submitting ? 'Adding…' : 'Add to Guestlist'}
-        </Button>
+        </BrandButton>
       </form>
     </div>
   );
@@ -252,47 +256,39 @@ function Reservations() {
   );
 
   return (
-    <main className="relative min-h-screen flex-1 overflow-hidden bg-surface px-6 py-12 lg:px-12">
-      <div className="hero-glow pointer-events-none absolute inset-x-0 top-0 h-80" />
+    <PageShell rings={RING_SETS.column} width="max-w-4xl">
+      <PageHeading
+        eyebrow="Front of House"
+        title="VIP Reservations"
+        description="Manage tonight's guestlist, lock in VIP tables, and protect your floor from no-shows."
+      />
 
-      <div className="relative mx-auto max-w-4xl">
-        <header className="mb-10">
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-primary">
-            Front of House
-          </p>
-          <h1 className="mt-3 font-display text-4xl font-bold tracking-tight text-content">
-            VIP Reservations
-          </h1>
-          <p className="mt-4 max-w-xl text-content-muted">
-            Manage tonight&apos;s guestlist, lock in VIP tables, and protect
-            your floor from no-shows.
-          </p>
-        </header>
-
-        {!activeVenue ? (
-          <div
-            data-testid="no-venue-notice"
-            className="rounded-xl border border-edge bg-content/5 px-5 py-4 text-sm text-content-muted"
+      {!activeVenue ? (
+        <p
+          data-testid="no-venue-notice"
+          className={`${PANEL} font-mono text-sm text-white/70`}
+        >
+          Create your venue card first to start taking VIP reservations.{' '}
+          <Link
+            to="/venue/create"
+            className="font-bold text-brand-orange hover:underline"
           >
-            Create your venue card first to start taking VIP reservations.{' '}
-            <Link to="/venue/create" className="text-primary hover:underline">
-              Create your venue
-            </Link>
-          </div>
-        ) : (
-          <FeatureLocked
-            requiredTier="pro"
-            featureName="VIP Table Management"
-            description="Upgrade to Pro to manage guestlists, capture Paystack deposits, and lock in VIP tables before the rush."
-          >
-            <ReservationsPanel
-              venueId={activeVenue.id}
-              isLocked={!vipReservations}
-            />
-          </FeatureLocked>
-        )}
-      </div>
-    </main>
+            Create your venue
+          </Link>
+        </p>
+      ) : (
+        <FeatureLocked
+          requiredTier="pro"
+          featureName="VIP Table Management"
+          description="Upgrade to Pro to manage guestlists, capture Paystack deposits, and lock in VIP tables before the rush."
+        >
+          <ReservationsPanel
+            venueId={activeVenue.id}
+            isLocked={!vipReservations}
+          />
+        </FeatureLocked>
+      )}
+    </PageShell>
   );
 }
 

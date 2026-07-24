@@ -7,15 +7,28 @@ import { useAuth } from '../context/AuthContext';
 import { getVenuesByOwner, updateVenue } from '../firebase/venueService';
 import VenueCardPreview from '../components/VenueCardPreview';
 import { toPreviewData } from '../data/venuePreview';
-import EmptyState from '../components/ui/EmptyState';
-import { Select } from '../components/ui/Field';
-import { Spinner } from '../components/ui/Spinner';
-import { buttonClasses } from '../components/ui/Button';
+import {
+  BrandEmptyState,
+  BrandLabel,
+  BrandSelect,
+  BrandSpinner,
+  Chip,
+  PageHeading,
+  PageShell,
+  PANEL,
+  PanelTitle,
+  RING_SETS,
+  brandButton,
+} from '../components/ui/Brand';
 import { useError } from '../context/ErrorContext';
 import { useSubscription } from '../hooks/useSubscription';
 
-const labelClass =
-  'text-xs font-semibold uppercase tracking-wider text-content-muted';
+const DetailRow = ({ label, children }) => (
+  <div className="flex justify-between gap-4 font-mono text-sm">
+    <span className="text-white/50">{label}</span>
+    <span className="text-right text-white/85">{children}</span>
+  </div>
+);
 
 function Preview() {
   const { currentUser } = useAuth();
@@ -91,158 +104,146 @@ function Preview() {
 
   if (loading && venues.length === 0) {
     return (
-      <div className="flex min-h-screen flex-1 flex-col items-center justify-center gap-4 bg-surface p-12">
-        <Spinner />
-        <p className="text-sm text-content-muted">Loading your venues...</p>
+      <div className="flex min-h-screen flex-1 flex-col items-center justify-center gap-4 bg-brand-ink p-12">
+        <BrandSpinner />
+        <p className="font-mono text-sm text-white/70">
+          Loading your venues...
+        </p>
       </div>
     );
   }
 
   if (venues.length === 0) {
     return (
-      <div className="flex min-h-screen flex-1 items-center justify-center bg-surface p-12">
-        <EmptyState
+      <PageShell
+        rings={RING_SETS.column}
+        width="max-w-2xl"
+        className="flex flex-col justify-center"
+      >
+        <BrandEmptyState
           icon={RectangleStackIcon}
           title="No Venue Cards Yet"
           description="Create your first venue card to see it here!"
-          className="max-w-md"
           action={
-            <a href="/venue/create" className={buttonClasses('primary')}>
+            // Plain anchors, not <Link>: this page is unit-tested outside a
+            // Router, and a full navigation is fine for both targets.
+            <a href="/venue/create" className={brandButton('primary', 'lg')}>
               + Create Venue Card
             </a>
           }
         />
-      </div>
+      </PageShell>
     );
   }
 
+  const publishLocked = selectedVenue && !selectedVenue.published && !canPublish;
+
   return (
-    <div className="flex min-h-screen flex-1 gap-8 bg-surface p-8 max-lg:flex-col">
-      {/* Left Side - Card Preview */}
-      <div className="flex w-1/2 items-start justify-center max-lg:w-full">
-        {selectedVenue && (
-          <VenueCardPreview
-            venueData={toPreviewData(selectedVenue)}
-            currentStep={4}
-          />
-        )}
-      </div>
+    <PageShell rings={RING_SETS.split} width="max-w-7xl">
+      <PageHeading
+        eyebrow="Live Card"
+        title="Active Card Preview"
+        description="Exactly what a group sees in the swipe deck. Switch venues to inspect each card, then publish when it's ready."
+      />
 
-      {/* Right Side - Controls & Info */}
-      <div className="flex w-1/2 flex-col gap-6 max-lg:w-full">
-        <h1 className="font-display text-3xl font-bold tracking-tight text-content">
-          Active Card Preview
-        </h1>
-
-        {/* Venue Selector */}
-        <div className="flex flex-col gap-2">
-          <label className={labelClass}>Switch Venue:</label>
-          <Select
-            className="py-3 text-sm"
-            value={selectedVenue?.id || ''}
-            onChange={handleVenueSelect}
-          >
-            {venues.map((venue) => (
-              <option key={venue.id} value={venue.id}>
-                {venue.name} - {venue.published ? '(Live)' : '(Draft)'}
-              </option>
-            ))}
-          </Select>
+      <div className="flex gap-8 max-lg:flex-col">
+        {/* Left — the card itself */}
+        <div className="flex w-1/2 items-start justify-center max-lg:w-full">
+          {selectedVenue && (
+            <VenueCardPreview
+              venueData={toPreviewData(selectedVenue)}
+              currentStep={4}
+            />
+          )}
         </div>
 
-        {/* Venue Details - Styled as a Dashboard Data Panel */}
-        {selectedVenue && (
-          <div className="flex flex-col gap-6 rounded-2xl border border-edge bg-surface-raised p-8 shadow-card">
-            <div className="flex flex-col gap-2">
-              <h3 className="mb-1 text-lg font-semibold text-content">
-                Basic Information
-              </h3>
-              <div className="flex justify-between gap-4 text-sm">
-                <span className="text-content-faint">Name:</span>
-                <span className="text-right font-medium text-content">
-                  {selectedVenue.name}
-                </span>
-              </div>
-              <div className="flex justify-between gap-4 text-sm">
-                <span className="text-content-faint">Address:</span>
-                <span className="text-right font-medium text-content">
-                  {selectedVenue.address}
-                </span>
-              </div>
-              <div className="flex justify-between gap-4 text-sm">
-                <span className="text-content-faint">Categories:</span>
-                <span className="text-right font-medium capitalize text-content">
-                  {(selectedVenue.categories &&
-                  selectedVenue.categories.length > 0
-                    ? selectedVenue.categories.join(', ')
-                    : selectedVenue.category) || 'Not set'}
-                </span>
-              </div>
-              <div className="flex justify-between gap-4 text-sm">
-                <span className="text-content-faint">Status:</span>
-                <span
-                  className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                    selectedVenue.published
-                      ? 'bg-success/15 text-success'
-                      : 'bg-secondary/15 text-secondary'
-                  }`}
-                >
-                  {selectedVenue.published ? 'Live on App' : 'Draft Mode'}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <h3 className="mb-1 text-lg font-semibold text-content">
-                Description
-              </h3>
-              <p className="text-sm leading-relaxed text-content-muted">
-                {selectedVenue.description || 'No description provided'}
-              </p>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <h3 className="mb-1 text-lg font-semibold text-content">
-                Media Assets
-              </h3>
-              <div className="flex justify-between gap-4 text-sm">
-                <span className="text-content-faint">Images Loaded:</span>
-                <span className="text-right font-medium text-content">
-                  {selectedVenue.images?.length || 0} / 4 Uploaded
-                </span>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="mt-2 flex gap-4">
-              <a
-                href={`/venue/edit/${selectedVenue.id}`}
-                className={buttonClasses('secondary', 'md', 'flex-1')}
-              >
-                Optimize Card
-              </a>
-              {/* Styled disabled (not the disabled attribute) so the
-                  click still fires the upgrade toast when tier-locked. */}
-              <button
-                data-testid="publish-toggle-button"
-                aria-disabled={!selectedVenue.published && !canPublish}
-                className={`flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-center font-semibold text-on-primary transition-colors duration-150 ${
-                  !selectedVenue.published && !canPublish
-                    ? 'cursor-not-allowed opacity-50'
-                    : 'hover:bg-primary-hover hover:shadow-glow-primary'
-                }`}
-                onClick={handleTogglePublish}
-              >
-                {!selectedVenue.published && !canPublish && (
-                  <LockClosedIcon className="h-4 w-4" aria-hidden="true" />
-                )}
-                {selectedVenue.published ? 'Unpublish Card' : 'Publish to App'}
-              </button>
-            </div>
+        {/* Right — controls & info */}
+        <div className="flex w-1/2 flex-col gap-6 max-lg:w-full">
+          <div className="flex flex-col gap-2">
+            <BrandLabel htmlFor="venue-switcher">Switch Venue</BrandLabel>
+            <BrandSelect
+              id="venue-switcher"
+              value={selectedVenue?.id || ''}
+              onChange={handleVenueSelect}
+            >
+              {venues.map((venue) => (
+                <option key={venue.id} value={venue.id}>
+                  {venue.name} - {venue.published ? '(Live)' : '(Draft)'}
+                </option>
+              ))}
+            </BrandSelect>
           </div>
-        )}
+
+          {selectedVenue && (
+            <div className={`${PANEL} flex flex-col gap-6`}>
+              <div className="flex flex-col gap-3">
+                <PanelTitle title="Basic Information" />
+                <DetailRow label="Name:">{selectedVenue.name}</DetailRow>
+                <DetailRow label="Address:">{selectedVenue.address}</DetailRow>
+                <DetailRow label="Categories:">
+                  <span className="capitalize">
+                    {(selectedVenue.categories &&
+                    selectedVenue.categories.length > 0
+                      ? selectedVenue.categories.join(', ')
+                      : selectedVenue.category) || 'Not set'}
+                  </span>
+                </DetailRow>
+                <div className="flex items-center justify-between gap-4 font-mono text-sm">
+                  <span className="text-white/50">Status:</span>
+                  <Chip tone={selectedVenue.published ? 'success' : 'warn'}>
+                    {selectedVenue.published ? 'Live on App' : 'Draft Mode'}
+                  </Chip>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <PanelTitle title="Description" />
+                <p className="font-mono text-sm leading-relaxed text-white/70">
+                  {selectedVenue.description || 'No description provided'}
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <PanelTitle title="Media Assets" />
+                <DetailRow label="Images Loaded:">
+                  {selectedVenue.images?.length || 0} / 4 Uploaded
+                </DetailRow>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="mt-2 flex gap-4">
+                <a
+                  href={`/venue/edit/${selectedVenue.id}`}
+                  className={brandButton('outline', 'md', 'flex-1')}
+                >
+                  Optimize Card
+                </a>
+                {/* Styled disabled (not the disabled attribute) so the
+                    click still fires the upgrade toast when tier-locked. */}
+                <button
+                  type="button"
+                  data-testid="publish-toggle-button"
+                  aria-disabled={publishLocked}
+                  className={brandButton(
+                    'primary',
+                    'md',
+                    `flex-1 ${publishLocked ? 'cursor-not-allowed opacity-50 hover:brightness-100' : ''}`
+                  )}
+                  onClick={handleTogglePublish}
+                >
+                  {publishLocked && (
+                    <LockClosedIcon className="h-4 w-4" aria-hidden="true" />
+                  )}
+                  {selectedVenue.published
+                    ? 'Unpublish Card'
+                    : 'Publish to App'}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </PageShell>
   );
 }
 

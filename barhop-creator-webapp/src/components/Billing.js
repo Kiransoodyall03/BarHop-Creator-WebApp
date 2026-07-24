@@ -2,9 +2,15 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import { CheckIcon } from '@heroicons/react/24/outline';
 import PricingMatrix from './PricingMatrix';
-import Card from './ui/Card';
-import { Spinner } from './ui/Spinner';
-import { buttonClasses } from './ui/Button';
+import {
+  BrandSpinner,
+  Chip,
+  chipClasses,
+  PANEL,
+  PanelTitle,
+  SegmentedRule,
+  brandButton,
+} from './ui/Brand';
 import { useAuth } from '../context/AuthContext';
 import { useError } from '../context/ErrorContext';
 import { TIER_ORDER } from '../hooks/useSubscription';
@@ -16,27 +22,18 @@ import {
   getSubscriptionManageLink,
 } from '../firebase/subscriptionService';
 
-const chipBase =
-  'inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wider';
-
 const SUBSCRIPTION_STATUS_BADGES = {
-  active: {
-    label: 'Active',
-    className: `${chipBase} border-success/30 bg-success/10 text-success`,
-  },
+  active: { label: 'Active', tone: 'success' },
   'non-renewing': {
     label: 'Cancelled — active until period end',
-    className: `${chipBase} border-secondary/30 bg-secondary/10 text-secondary`,
+    tone: 'warn',
   },
-  attention: {
-    label: 'Payment issue — update your card',
-    className: `${chipBase} border-danger/40 bg-danger/10 text-danger`,
-  },
+  attention: { label: 'Payment issue — update your card', tone: 'danger' },
 };
 
-const TX_STATUS_CLASSES = {
-  success: 'bg-success/15 text-success',
-  failed: 'bg-danger/15 text-danger',
+const TX_STATUS_TONES = {
+  success: 'success',
+  failed: 'danger',
 };
 
 const formatAmount = (amountCents, currency = 'ZAR') => {
@@ -55,6 +52,9 @@ const formatDate = (value) => {
     year: 'numeric',
   });
 };
+
+const fieldLabel =
+  'font-mono text-xs font-bold uppercase tracking-wider text-white/50';
 
 // Escape hatch for anything the self-serve portal can't do yet
 // (downgrades, refunds, disputes). Pre-filled with full account context
@@ -81,11 +81,11 @@ function CancelModal({ busy, onKeep, onConfirm }) {
       data-testid="cancel-modal"
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-6 backdrop-blur-sm"
     >
-      <div className="w-full max-w-md rounded-2xl border border-edge bg-surface-raised p-8 shadow-card">
-        <h3 className="text-xl font-semibold text-content">
+      <div className="w-full max-w-md rounded-2xl border border-white/15 bg-brand-ink p-8 shadow-[0_20px_45px_rgba(0,0,0,0.45)]">
+        <h3 className="font-display text-xl font-bold text-white">
           Cancel your subscription?
         </h3>
-        <p className="mt-3 text-sm text-content-muted">
+        <p className="mt-3 font-mono text-sm text-white/70">
           Auto-renewal stops immediately and you won&apos;t be charged again.
           You keep full access until the end of the period you&apos;ve already
           paid for — after that your venue drops to the free trial tier and
@@ -96,7 +96,7 @@ function CancelModal({ busy, onKeep, onConfirm }) {
             type="button"
             data-testid="cancel-modal-keep"
             onClick={onKeep}
-            className={buttonClasses('secondary')}
+            className={brandButton('outline')}
           >
             Keep Subscription
           </button>
@@ -105,7 +105,7 @@ function CancelModal({ busy, onKeep, onConfirm }) {
             data-testid="cancel-modal-confirm"
             onClick={onConfirm}
             disabled={busy}
-            className="rounded-lg bg-danger px-5 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-danger/90 disabled:cursor-not-allowed disabled:opacity-50"
+            className={brandButton('danger')}
           >
             {busy ? 'Cancelling…' : 'Cancel Subscription'}
           </button>
@@ -128,29 +128,32 @@ function SubscriptionDetails({
   const card = subscription.card;
 
   return (
-    <div className="mt-6 border-t border-edge pt-6">
+    <div className="mt-6 flex flex-col gap-6">
+      <SegmentedRule variant="cool" />
+
       <div className="grid gap-4 sm:grid-cols-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-content-faint">
-            Status
-          </p>
+          <p className={fieldLabel}>Status</p>
           <p className="mt-2">
-            <span data-testid="subscription-status" className={badge.className}>
+            <span
+              data-testid="subscription-status"
+              className={chipClasses(badge.tone)}
+            >
               {badge.label}
             </span>
           </p>
         </div>
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-content-faint">
+          <p className={fieldLabel}>
             {isNonRenewing ? 'Access Until' : 'Next Payment'}
           </p>
           <p
             data-testid="subscription-next-payment"
-            className="mt-2 text-sm text-content"
+            className="mt-2 font-mono text-sm text-white/85"
           >
             {formatDate(subscription.nextPaymentDate)}
             {!isNonRenewing && (
-              <span className="text-content-faint">
+              <span className="text-white/50">
                 {' '}
                 ·{' '}
                 {formatAmount(subscription.amountCents, subscription.currency)}
@@ -160,10 +163,11 @@ function SubscriptionDetails({
           </p>
         </div>
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-content-faint">
-            Payment Method
-          </p>
-          <p data-testid="card-on-file" className="mt-2 text-sm text-content">
+          <p className={fieldLabel}>Payment Method</p>
+          <p
+            data-testid="card-on-file"
+            className="mt-2 font-mono text-sm text-white/85"
+          >
             {card
               ? `${card.brand} •••• ${card.last4} · exp ${card.expMonth}/${card.expYear}`
               : 'No card on file'}
@@ -171,13 +175,13 @@ function SubscriptionDetails({
         </div>
       </div>
 
-      <div className="mt-6 flex flex-wrap gap-3">
+      <div className="flex flex-wrap gap-3">
         <button
           type="button"
           data-testid="update-card-button"
           onClick={onUpdateCard}
           disabled={portalBusy !== null}
-          className={buttonClasses('primary', 'sm')}
+          className={brandButton('primary', 'sm')}
         >
           {portalBusy === 'link' ? 'Opening…' : 'Update Payment Card'}
         </button>
@@ -187,13 +191,13 @@ function SubscriptionDetails({
             data-testid="cancel-subscription-button"
             onClick={onRequestCancel}
             disabled={portalBusy !== null}
-            className={buttonClasses('danger', 'sm')}
+            className={brandButton('danger', 'sm')}
           >
             Cancel Subscription
           </button>
         )}
       </div>
-      <p className="mt-3 text-xs text-content-faint">
+      <p className="-mt-3 font-mono text-xs text-white/50">
         Card updates open Paystack&apos;s secure hosted page — BarHop never sees
         or stores your card number.
       </p>
@@ -203,10 +207,10 @@ function SubscriptionDetails({
 
 function BillingHistory({ transactions }) {
   return (
-    <Card as="section" data-testid="billing-history">
-      <h3 className="text-lg font-semibold text-content">Billing History</h3>
+    <section className={PANEL} data-testid="billing-history">
+      <PanelTitle title="Billing History" />
       {transactions.length === 0 ? (
-        <p className="mt-4 text-sm text-content-faint">
+        <p className="mt-4 font-mono text-sm text-white/50">
           No charges yet — your payments will appear here.
         </p>
       ) : (
@@ -215,25 +219,23 @@ function BillingHistory({ transactions }) {
             <li
               key={tx.reference}
               data-testid={`billing-tx-${tx.reference}`}
-              className="flex flex-wrap items-center justify-between gap-3 border-b border-edge py-3 text-sm last:border-b-0"
+              className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 py-3 font-mono text-sm last:border-b-0"
             >
               <div className="flex min-w-0 flex-col">
-                <span className="font-medium text-content">
-                  {tx.description}
-                </span>
-                <span className="text-xs text-content-faint">
+                <span className="font-bold text-white">{tx.description}</span>
+                <span className="text-xs text-white/50">
                   {formatDate(tx.paidAt)} · Ref {tx.reference}
                 </span>
               </div>
               <div className="flex shrink-0 items-center gap-3">
-                <span className="text-content">
+                <span className="text-white/85">
                   {formatAmount(tx.amountCents, tx.currency)}
                 </span>
                 <span
-                  className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${
-                    TX_STATUS_CLASSES[tx.status] ||
-                    'bg-content/10 text-content-muted'
-                  }`}
+                  className={chipClasses(
+                    TX_STATUS_TONES[tx.status] || 'neutral',
+                    'capitalize'
+                  )}
                 >
                   {tx.status}
                 </span>
@@ -242,7 +244,7 @@ function BillingHistory({ transactions }) {
           ))}
         </ul>
       )}
-    </Card>
+    </section>
   );
 }
 
@@ -328,33 +330,26 @@ function Billing() {
 
   return (
     <div className="flex flex-col gap-8">
-      <Card as="section" data-testid="billing-current-plan">
+      <section className={PANEL} data-testid="billing-current-plan">
         <div className="flex flex-wrap items-start justify-between gap-6">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-content-faint">
+            <p className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-white/50">
               Current Plan
             </p>
             <div className="mt-2 flex flex-wrap items-center gap-3">
-              <h3 className="font-display text-2xl font-semibold text-content">
+              <h2 className="font-display text-2xl font-bold text-white">
                 {plan ? `${plan.name} Plan` : 'Free Trial'}
-              </h3>
+              </h2>
               {plan ? (
-                <span
-                  data-testid="billing-active-badge"
-                  className={`${chipBase} border-success/30 bg-success/10 text-success`}
-                >
-                  <span className="h-1.5 w-1.5 rounded-full bg-success" />
+                <Chip tone="success" data-testid="billing-active-badge">
+                  <span className="h-1.5 w-1.5 rounded-full bg-brand-green" />
                   Active
-                </span>
+                </Chip>
               ) : (
-                <span
-                  className={`${chipBase} border-primary/30 bg-primary/10 text-primary`}
-                >
-                  Not Subscribed
-                </span>
+                <Chip tone="warn">Not Subscribed</Chip>
               )}
             </div>
-            <p className="mt-1 text-sm text-content-muted">
+            <p className="mt-1 font-mono text-sm text-white/60">
               {plan
                 ? plan.tagline
                 : 'Pick a plan below to publish your venue card and unlock the platform.'}
@@ -364,53 +359,56 @@ function Billing() {
           <a
             data-testid="manage-billing-link"
             href={supportHref}
-            className={buttonClasses('secondary', 'sm')}
+            className={brandButton('outline', 'sm')}
           >
             Email Billing Support
           </a>
         </div>
 
         {plan && (
-          <div className="mt-6 border-t border-edge pt-5">
-            <h4 className="text-xs font-semibold uppercase tracking-[0.2em] text-content-faint">
-              Unlocked with your plan
-            </h4>
-            <ul className="mt-3 grid gap-2.5 text-sm text-content-muted sm:grid-cols-2">
-              {plan.features.map((feature) => (
-                <li key={feature} className="flex items-start gap-2">
-                  <CheckIcon
-                    className="mt-0.5 h-4 w-4 shrink-0 text-success"
-                    aria-hidden="true"
-                  />
-                  {feature}
-                </li>
-              ))}
-            </ul>
+          <div className="mt-6 flex flex-col gap-5">
+            <SegmentedRule variant="cool" />
+            <div>
+              <h3 className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-white/50">
+                Unlocked with your plan
+              </h3>
+              <ul className="mt-3 grid gap-2.5 font-mono text-sm text-white/70 sm:grid-cols-2">
+                {plan.features.map((feature) => (
+                  <li key={feature} className="flex items-start gap-2">
+                    <CheckIcon
+                      className="mt-0.5 h-4 w-4 shrink-0 text-brand-green"
+                      aria-hidden="true"
+                    />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         )}
 
         {hasBillingProfile && loadingOverview && (
           <div
             data-testid="subscription-loading"
-            className="mt-6 flex items-center gap-3 border-t border-edge pt-6 text-sm text-content-faint"
+            className="mt-6 flex items-center gap-3 font-mono text-sm text-white/50"
           >
-            <Spinner size="sm" />
+            <BrandSpinner className="h-5 w-5" />
             Loading your subscription…
           </div>
         )}
 
         {hasBillingProfile && !loadingOverview && overviewFailed && (
-          <div className="mt-6 border-t border-edge pt-6 text-sm text-content-muted">
+          <p className="mt-6 font-mono text-sm text-white/70">
             Couldn&apos;t load your subscription details.{' '}
             <button
               type="button"
               data-testid="billing-retry"
               onClick={fetchOverview}
-              className="font-semibold text-primary hover:underline"
+              className="font-bold text-brand-orange hover:underline"
             >
               Retry
             </button>
-          </div>
+          </p>
         )}
 
         {!loadingOverview && subscription && (
@@ -428,15 +426,18 @@ function Billing() {
           overview &&
           !subscription &&
           hasActivePlan && (
-            <p className="mt-6 border-t border-edge pt-6 text-sm text-content-faint">
+            <p className="mt-6 font-mono text-sm text-white/50">
               We couldn&apos;t find a manageable subscription for your account —{' '}
-              <a href={supportHref} className="text-primary hover:underline">
+              <a
+                href={supportHref}
+                className="font-bold text-brand-orange hover:underline"
+              >
                 email billing support
               </a>{' '}
               and we&apos;ll sort it out.
             </p>
           )}
-      </Card>
+      </section>
 
       {overview &&
         overview.transactions &&
@@ -445,12 +446,15 @@ function Billing() {
         )}
 
       <section>
-        <h3 className="mb-2 text-lg font-semibold text-content">
+        <h2 className="mb-2 font-display text-xl font-bold text-white">
           {hasActivePlan ? 'Change Plan' : 'Choose Your Plan'}
-        </h3>
+        </h2>
         {!activeVenue && (
-          <p className="mb-6 text-sm text-content-muted">
-            <Link to="/venue/create" className="text-primary hover:underline">
+          <p className="mb-6 font-mono text-sm text-white/60">
+            <Link
+              to="/venue/create"
+              className="font-bold text-brand-orange hover:underline"
+            >
               Create your venue card
             </Link>{' '}
             first — your plan activates and publishes it the moment payment

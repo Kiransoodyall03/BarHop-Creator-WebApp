@@ -4,23 +4,26 @@ import {
   ArrowRightOnRectangleIcon,
   MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline';
-import {
-  getFirestore,
-  collection,
-  doc,
-  onSnapshot,
-} from 'firebase/firestore';
+import { getFirestore, collection, doc, onSnapshot } from 'firebase/firestore';
 import { getAdminRevenue } from '../firebase/adminService';
 import { logout } from '../firebase/authService';
 import { useError } from '../context/ErrorContext';
-import { Spinner } from '../components/ui/Spinner';
-import { Input } from '../components/ui/Field';
-import { buttonClasses } from '../components/ui/Button';
+import {
+  BrandInput,
+  BrandSpinner,
+  chipClasses,
+  PageHeading,
+  PageShell,
+  PANEL,
+  PANEL_HOVER,
+  PanelTitle,
+  RING_SETS,
+  SegmentedRule,
+  brandButton,
+} from '../components/ui/Brand';
 
 const FOURSQUARE_FREE_CALLS = 500;
 const CURRENT_MONTH = new Date().toISOString().slice(0, 7); // YYYY-MM
-
-const cardClass = 'rounded-2xl border border-edge bg-surface-raised p-6';
 
 const fmtNum = (n) => (n ?? 0).toLocaleString();
 
@@ -37,36 +40,38 @@ const rand = (cents) =>
 
 function StatCard({ label, value, hint }) {
   return (
-    <div className={cardClass}>
-      <p className="text-sm font-medium uppercase tracking-wider text-content-muted">
+    <div className={`${PANEL} ${PANEL_HOVER}`}>
+      <p className="font-mono text-xs font-bold uppercase tracking-wider text-white/50">
         {label}
       </p>
-      <p className="mt-2 font-display text-4xl font-bold text-content">
+      <p className="mt-3 font-mono text-4xl font-bold leading-none text-white">
         {value}
       </p>
-      {hint && <p className="mt-1 text-sm text-content-faint">{hint}</p>}
+      {hint && <p className="mt-2 font-mono text-xs text-white/50">{hint}</p>}
     </div>
   );
 }
 
 function TierPill({ tier }) {
-  const styles = {
-    trial: 'bg-content/10 text-content-muted',
-    starter: 'bg-brand-blue/15 text-brand-blue',
-    pro: 'bg-primary/15 text-primary',
-    enterprise: 'bg-brand-green/15 text-brand-green',
+  const tones = {
+    trial: 'neutral',
+    starter: 'cool',
+    pro: 'danger',
+    enterprise: 'success',
   };
   const label = tier || 'trial';
   return (
-    <span
-      className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ${
-        styles[label] || styles.trial
-      }`}
-    >
+    <span className={chipClasses(tones[label] || 'neutral', 'capitalize')}>
       {label}
     </span>
   );
 }
+
+// Table styling is shared by every directory/report table on this page.
+const TH = 'pb-3 font-mono text-xs font-bold uppercase tracking-wider text-white/45';
+const TR = 'border-t border-white/10';
+const TD = 'py-3 pr-4 font-mono text-sm text-white/85';
+const TD_MUTED = 'py-3 pr-4 font-mono text-sm text-white/55';
 
 // --- Overview tab ---
 
@@ -100,47 +105,47 @@ function OverviewTab({ stats, usage, districtCache, indexUpdatedAt }) {
         />
       </div>
 
-      <div className={cardClass}>
-        <div className="flex items-baseline justify-between">
-          <h2 className="font-display text-xl font-bold text-content">
-            Foursquare API Usage
-          </h2>
-          <span className="text-sm text-content-faint">{CURRENT_MONTH}</span>
-        </div>
-        <p className="mt-2 text-3xl font-bold text-content">
+      <div className={PANEL}>
+        <PanelTitle
+          title="Foursquare API Usage"
+          actions={
+            <span className="font-mono text-sm text-white/50">
+              {CURRENT_MONTH}
+            </span>
+          }
+        />
+        <p className="mt-4 font-mono text-3xl font-bold text-white">
           {fmtNum(usage.total)}
-          <span className="text-base font-normal text-content-faint">
+          <span className="text-base font-normal text-white/50">
             {' '}
             / {fmtNum(FOURSQUARE_FREE_CALLS)} free calls
           </span>
         </p>
-        <div className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-content/10">
+        <div className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-white/10">
           <div
             className={`h-full rounded-full ${
-              over ? 'bg-danger' : 'bg-primary'
+              over ? 'bg-brand-pink' : 'bg-brand-cool'
             }`}
             style={{ width: `${usagePct}%` }}
           />
         </div>
-        <div className="mt-4 flex flex-wrap gap-x-8 gap-y-1 text-sm text-content-muted">
+        <div className="mt-4 flex flex-wrap gap-x-8 gap-y-1 font-mono text-sm text-white/60">
           <span>Scheduled refresh: {fmtNum(usage.refresh)}</span>
           <span>Owner lookups: {fmtNum(usage.search)}</span>
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className={cardClass}>
-          <h2 className="font-display text-xl font-bold text-content">
-            Venues by Tier
-          </h2>
+        <div className={PANEL}>
+          <PanelTitle title="Venues by Tier" />
           <ul className="mt-4 flex flex-col">
             {['trial', 'starter', 'pro', 'enterprise'].map((tier) => (
               <li
                 key={tier}
-                className="flex items-center justify-between border-b border-edge py-2.5 text-sm capitalize last:border-0"
+                className="flex items-center justify-between border-b border-white/10 py-2.5 font-mono text-sm capitalize last:border-0"
               >
-                <span className="text-content-muted">{tier}</span>
-                <span className="font-semibold text-content">
+                <span className="text-white/60">{tier}</span>
+                <span className="font-bold text-white">
                   {fmtNum(stats.byTier[tier])}
                 </span>
               </li>
@@ -148,37 +153,37 @@ function OverviewTab({ stats, usage, districtCache, indexUpdatedAt }) {
           </ul>
         </div>
 
-        <div className={cardClass}>
-          <div className="flex items-baseline justify-between gap-3">
-            <h2 className="font-display text-xl font-bold text-content">
-              District Cache
-            </h2>
-            <span className="text-sm text-content-faint">
-              Index: {fmtTs(indexUpdatedAt)}
-            </span>
-          </div>
+        <div className={PANEL}>
+          <PanelTitle
+            title="District Cache"
+            actions={
+              <span className="font-mono text-sm text-white/50">
+                Index: {fmtTs(indexUpdatedAt)}
+              </span>
+            }
+          />
           {districtCache.length === 0 ? (
-            <p className="mt-4 text-sm text-content-faint">
+            <p className="mt-4 font-mono text-sm text-white/50">
               No district snapshots yet — seed districts and run the refresh.
             </p>
           ) : (
             <div className="mt-4 overflow-x-auto">
-              <table className="w-full text-left text-sm">
+              <table className="w-full text-left">
                 <thead>
-                  <tr className="text-content-faint">
-                    <th className="pb-2 font-medium">District</th>
-                    <th className="pb-2 text-right font-medium">Venues</th>
-                    <th className="pb-2 text-right font-medium">Refreshed</th>
+                  <tr>
+                    <th className={TH}>District</th>
+                    <th className={`${TH} text-right`}>Venues</th>
+                    <th className={`${TH} text-right`}>Refreshed</th>
                   </tr>
                 </thead>
                 <tbody>
                   {districtCache.map((d) => (
-                    <tr key={d.id} className="border-t border-edge">
-                      <td className="py-2 text-content">{d.name}</td>
-                      <td className="py-2 text-right text-content-muted">
+                    <tr key={d.id} className={TR}>
+                      <td className={TD}>{d.name}</td>
+                      <td className={`${TD_MUTED} text-right`}>
                         {fmtNum(d.venueCount)}
                       </td>
-                      <td className="py-2 text-right text-content-muted">
+                      <td className={`${TD_MUTED} text-right`}>
                         {fmtTs(d.fetchedAt)}
                       </td>
                     </tr>
@@ -203,16 +208,18 @@ function DirectoryTab({ venues, users }) {
   const filteredVenues = useMemo(() => {
     if (!q) return venues;
     return venues.filter((v) =>
-      [v.name, v.address, v.placeId, v.ownerId, v.id]
-        .some((f) => (f || '').toLowerCase().includes(q))
+      [v.name, v.address, v.placeId, v.ownerId, v.id].some((f) =>
+        (f || '').toLowerCase().includes(q)
+      )
     );
   }, [venues, q]);
 
   const filteredOwners = useMemo(() => {
     if (!q) return users;
     return users.filter((u) =>
-      [u.email, u.displayName, u.firstName, u.lastName]
-        .some((f) => (f || '').toLowerCase().includes(q))
+      [u.email, u.displayName, u.firstName, u.lastName].some((f) =>
+        (f || '').toLowerCase().includes(q)
+      )
     );
   }, [users, q]);
 
@@ -221,16 +228,16 @@ function DirectoryTab({ venues, users }) {
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center gap-3">
-        <div className="inline-flex rounded-lg border border-edge p-1">
+        <div className="inline-flex rounded-lg border border-white/20 bg-white/[0.06] p-1">
           {['venues', 'owners'].map((m) => (
             <button
               key={m}
               type="button"
               onClick={() => setMode(m)}
-              className={`rounded-md px-4 py-1.5 text-sm font-medium capitalize transition ${
+              className={`rounded-md px-4 py-1.5 font-display text-sm font-bold capitalize transition ${
                 mode === m
-                  ? 'bg-primary text-on-primary'
-                  : 'text-content-muted hover:text-content'
+                  ? 'bg-brand-warm text-white'
+                  : 'text-white/60 hover:text-white'
               }`}
             >
               {m}
@@ -239,10 +246,10 @@ function DirectoryTab({ venues, users }) {
         </div>
         <div className="relative min-w-[16rem] flex-1">
           <MagnifyingGlassIcon
-            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-content-faint"
+            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40"
             aria-hidden="true"
           />
-          <Input
+          <BrandInput
             type="search"
             className="pl-9"
             placeholder={`Search ${mode}…`}
@@ -250,53 +257,54 @@ function DirectoryTab({ venues, users }) {
             onChange={(e) => setQuery(e.target.value)}
           />
         </div>
-        <span className="text-sm text-content-faint">
+        <span className="font-mono text-sm text-white/50">
           {rows.length} {mode}
         </span>
       </div>
 
-      <div className={`${cardClass} overflow-x-auto`}>
+      <div className={`${PANEL} overflow-x-auto`}>
         {mode === 'venues' ? (
-          <table className="w-full text-left text-sm">
+          <table className="w-full text-left">
             <thead>
-              <tr className="text-content-faint">
-                <th className="pb-3 font-medium">Venue</th>
-                <th className="pb-3 font-medium">Status</th>
-                <th className="pb-3 font-medium">Tier</th>
-                <th className="pb-3 font-medium">Foursquare</th>
+              <tr>
+                <th className={TH}>Venue</th>
+                <th className={TH}>Status</th>
+                <th className={TH}>Tier</th>
+                <th className={TH}>Foursquare</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((v) => (
-                <tr key={v.id} className="border-t border-edge align-top">
-                  <td className="py-3 pr-4">
-                    <p className="font-medium text-content">
+                <tr key={v.id} className={`${TR} align-top`}>
+                  <td className={TD}>
+                    <p className="font-bold text-white">
                       {v.name || '(unnamed)'}
                     </p>
-                    <p className="text-xs text-content-faint">{v.address}</p>
+                    <p className="text-xs text-white/50">{v.address}</p>
                   </td>
-                  <td className="py-3 pr-4">
+                  <td className={TD}>
                     <span
                       className={
-                        v.published
-                          ? 'text-brand-green'
-                          : 'text-content-faint'
+                        v.published ? 'text-brand-green' : 'text-white/50'
                       }
                     >
                       {v.published ? 'Live' : 'Draft'}
                     </span>
                   </td>
-                  <td className="py-3 pr-4">
+                  <td className={TD}>
                     <TierPill tier={v.subscriptionTier} />
                   </td>
-                  <td className="py-3 font-mono text-xs text-content-muted">
+                  <td className={`${TD_MUTED} text-xs`}>
                     {v.placeId ? v.placeId : '— none —'}
                   </td>
                 </tr>
               ))}
               {rows.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="py-6 text-center text-content-faint">
+                  <td
+                    colSpan={4}
+                    className="py-6 text-center font-mono text-sm text-white/50"
+                  >
                     No matching venues.
                   </td>
                 </tr>
@@ -304,35 +312,38 @@ function DirectoryTab({ venues, users }) {
             </tbody>
           </table>
         ) : (
-          <table className="w-full text-left text-sm">
+          <table className="w-full text-left">
             <thead>
-              <tr className="text-content-faint">
-                <th className="pb-3 font-medium">Owner</th>
-                <th className="pb-3 font-medium">Email</th>
-                <th className="pb-3 font-medium">Tier</th>
-                <th className="pb-3 font-medium">Verification</th>
+              <tr>
+                <th className={TH}>Owner</th>
+                <th className={TH}>Email</th>
+                <th className={TH}>Tier</th>
+                <th className={TH}>Verification</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((u) => (
-                <tr key={u.id} className="border-t border-edge">
-                  <td className="py-3 pr-4 text-content">
+                <tr key={u.id} className={TR}>
+                  <td className={TD}>
                     {u.displayName ||
                       `${u.firstName || ''} ${u.lastName || ''}`.trim() ||
                       '(no name)'}
                   </td>
-                  <td className="py-3 pr-4 text-content-muted">{u.email}</td>
-                  <td className="py-3 pr-4">
+                  <td className={TD_MUTED}>{u.email}</td>
+                  <td className={TD}>
                     <TierPill tier={u.subscriptionTier} />
                   </td>
-                  <td className="py-3 text-content-muted">
+                  <td className={TD_MUTED}>
                     {u.verificationStatus || 'UNVERIFIED'}
                   </td>
                 </tr>
               ))}
               {rows.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="py-6 text-center text-content-faint">
+                  <td
+                    colSpan={4}
+                    className="py-6 text-center font-mono text-sm text-white/50"
+                  >
                     No matching owners.
                   </td>
                 </tr>
@@ -372,7 +383,7 @@ function RevenueTab() {
   if (loading || !data) {
     return (
       <div className="flex items-center justify-center py-24">
-        <Spinner />
+        <BrandSpinner />
       </div>
     );
   }
@@ -397,18 +408,16 @@ function RevenueTab() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className={cardClass}>
-          <h2 className="font-display text-xl font-bold text-content">
-            Active Subscriptions by Tier
-          </h2>
+        <div className={PANEL}>
+          <PanelTitle title="Active Subscriptions by Tier" />
           <ul className="mt-4 flex flex-col">
             {['starter', 'pro', 'enterprise'].map((tier) => (
               <li
                 key={tier}
-                className="flex items-center justify-between border-b border-edge py-2.5 text-sm capitalize last:border-0"
+                className="flex items-center justify-between border-b border-white/10 py-2.5 font-mono text-sm capitalize last:border-0"
               >
-                <span className="text-content-muted">{tier}</span>
-                <span className="font-semibold text-content">
+                <span className="text-white/60">{tier}</span>
+                <span className="font-bold text-white">
                   {fmtNum(data.byTier[tier])}
                 </span>
               </li>
@@ -416,24 +425,20 @@ function RevenueTab() {
           </ul>
         </div>
 
-        <div className={`${cardClass} overflow-x-auto`}>
-          <h2 className="font-display text-xl font-bold text-content">
-            Recent Charges
-          </h2>
+        <div className={`${PANEL} overflow-x-auto`}>
+          <PanelTitle title="Recent Charges" />
           {data.recentTransactions.length === 0 ? (
-            <p className="mt-4 text-sm text-content-faint">
+            <p className="mt-4 font-mono text-sm text-white/50">
               No successful charges yet.
             </p>
           ) : (
-            <table className="mt-4 w-full text-left text-sm">
+            <table className="mt-4 w-full text-left">
               <tbody>
                 {data.recentTransactions.map((tx) => (
-                  <tr key={tx.reference} className="border-t border-edge">
-                    <td className="py-2 pr-4 text-content">{tx.email}</td>
-                    <td className="py-2 pr-4 text-content-faint">
-                      {fmtTs(tx.paidAt)}
-                    </td>
-                    <td className="py-2 text-right font-semibold text-content">
+                  <tr key={tx.reference} className={TR}>
+                    <td className={TD}>{tx.email}</td>
+                    <td className={TD_MUTED}>{fmtTs(tx.paidAt)}</td>
+                    <td className={`${TD} text-right font-bold`}>
                       {rand(tx.amountCents)}
                     </td>
                   </tr>
@@ -444,7 +449,7 @@ function RevenueTab() {
         </div>
       </div>
 
-      <p className="text-xs text-content-faint">
+      <p className="font-mono text-xs text-white/50">
         Paystack figures as of {fmtTs(data.generatedAt)}. Reopen this tab to
         refresh.
       </p>
@@ -556,70 +561,75 @@ function AdminDashboard() {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen bg-surface px-6 py-8 lg:px-12">
-      <div className="mx-auto flex max-w-[1400px] flex-col gap-6">
-        <header className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="font-display text-3xl font-bold tracking-tight text-content">
-              Admin Console
-            </h1>
-            <p className="mt-1 flex items-center gap-1.5 text-sm text-content-faint">
+    // Standalone route — the admin console renders outside DashboardLayout,
+    // so this shell owns the page's <main>.
+    <PageShell as="main" rings={RING_SETS.panel} width="max-w-[1400px]">
+      <PageHeading
+        eyebrow="Internal"
+        title="Admin Console"
+        description="Live platform telemetry: venue and owner directories, Foursquare quota, and Paystack revenue."
+        actions={
+          <>
+            <span className="inline-flex items-center gap-1.5 font-mono text-sm text-white/60">
               <span className="h-2 w-2 rounded-full bg-brand-green" />
               Live
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={handleLogout}
-            className={buttonClasses('secondary', 'sm')}
-          >
-            <ArrowRightOnRectangleIcon
-              className="h-4 w-4"
-              aria-hidden="true"
-            />
-            Log Out
-          </button>
-        </header>
+            </span>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className={brandButton('outline', 'sm')}
+            >
+              <ArrowRightOnRectangleIcon
+                className="h-4 w-4"
+                aria-hidden="true"
+              />
+              Log Out
+            </button>
+          </>
+        }
+      />
 
-        <div className="flex gap-1 border-b border-edge">
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-wrap gap-1">
           {TABS.map((t) => (
             <button
               key={t}
               type="button"
               onClick={() => setTab(t)}
-              className={`-mb-px border-b-2 px-4 py-2.5 text-sm font-medium transition ${
+              className={`rounded-lg px-4 py-2.5 font-mono text-sm transition ${
                 tab === t
-                  ? 'border-primary text-content'
-                  : 'border-transparent text-content-muted hover:text-content'
+                  ? 'bg-white/10 font-bold text-white'
+                  : 'text-white/55 hover:text-white'
               }`}
             >
               {t}
             </button>
           ))}
         </div>
-
-        {!ready && tab !== 'Revenue' ? (
-          <div className="flex items-center justify-center py-24">
-            <Spinner />
-          </div>
-        ) : (
-          <>
-            {tab === 'Overview' && (
-              <OverviewTab
-                stats={stats}
-                usage={usage}
-                districtCache={districtCache}
-                indexUpdatedAt={indexDoc?.updatedAt}
-              />
-            )}
-            {tab === 'Venues & Owners' && (
-              <DirectoryTab venues={venues} users={users} />
-            )}
-            {tab === 'Revenue' && <RevenueTab />}
-          </>
-        )}
+        <SegmentedRule variant="cool" />
       </div>
-    </div>
+
+      {!ready && tab !== 'Revenue' ? (
+        <div className="flex items-center justify-center py-24">
+          <BrandSpinner />
+        </div>
+      ) : (
+        <>
+          {tab === 'Overview' && (
+            <OverviewTab
+              stats={stats}
+              usage={usage}
+              districtCache={districtCache}
+              indexUpdatedAt={indexDoc?.updatedAt}
+            />
+          )}
+          {tab === 'Venues & Owners' && (
+            <DirectoryTab venues={venues} users={users} />
+          )}
+          {tab === 'Revenue' && <RevenueTab />}
+        </>
+      )}
+    </PageShell>
   );
 }
 

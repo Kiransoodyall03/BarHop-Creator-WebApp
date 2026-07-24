@@ -1,10 +1,15 @@
 // One-off: seed the hand-curated district registry that the
-// refreshDistrictVenues scheduled function reads. Run from the functions/ dir
-// with Application Default Credentials for the project (e.g. `gcloud auth
-// application-default login`, or GOOGLE_APPLICATION_CREDENTIALS pointing at a
-// service-account key):
+// refreshDistrictVenues scheduled function reads.
 //
-//   node scripts/seedDistricts.js
+// Needs credentials for the project (the Firebase CLI login is NOT enough).
+// Simplest is a service-account key — Firebase Console → Project settings →
+// Service accounts → Generate new private key — then, from the repo root:
+//
+//   export GOOGLE_APPLICATION_CREDENTIALS="/c/path/to/serviceAccountKey.json"
+//   node functions/scripts/seedDistricts.js
+//
+// (Or `gcloud auth application-default login` if you have gcloud installed.)
+// The project id is set explicitly below, so only credentials are required.
 //
 // Idempotent (merge): re-running updates values in place without duplicating
 // docs. Not shipped with the deployed functions (see firebase.json
@@ -13,7 +18,14 @@
 
 const admin = require("firebase-admin");
 
-admin.initializeApp();
+// Explicit project id so the script never fails on env auto-detection; the
+// service-account key (or ADC) still supplies the credentials.
+const projectId =
+  process.env.GOOGLE_CLOUD_PROJECT ||
+  process.env.GCLOUD_PROJECT ||
+  "barhop-creator-webapp-ee9a8";
+
+admin.initializeApp({projectId});
 
 const DISTRICTS = [
   {id: "braamfontein", name: "Braamfontein",

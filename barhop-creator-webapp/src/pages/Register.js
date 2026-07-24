@@ -13,17 +13,34 @@ import {
 } from '../firebase/userService';
 import { callCreatePaystackSubaccount } from '../firebase/venueService';
 import { useAuth } from '../context/AuthContext';
+import {
+  AUTH_RINGS,
+  CARD_LAYERS,
+  FIELD,
+  FIELD_LABEL,
+  GradientLine,
+  MarketingNav,
+  MarketingPage,
+  MarketingSection,
+  OrDivider,
+  OrbitRings,
+  SectionCopy,
+  SlabCard,
+  marketingButton,
+} from '../components/ui/Marketing';
 
-const labelClass =
-  'text-xs font-semibold uppercase tracking-wider text-content-muted';
-const inputClass =
-  'w-full rounded-lg border border-edge bg-surface-raised px-4 py-2.5 text-sm text-content placeholder:text-content-faint outline-none transition focus:border-primary/60 focus:ring-1 focus:ring-primary/40';
+// Public onboarding wizard, built from the Landing page's kit: white nav
+// and footer bracketing a dark band, a centred copy block over gradient
+// orbit rings, and the four-step form on a white slab card stacked over
+// offset colour slabs. Centred rather than beside the copy because the
+// business step's three-column address row needs the full column width.
+
+const labelClass = FIELD_LABEL;
+const inputClass = FIELD;
 const sectionHeadingClass =
-  'mt-2 border-b border-edge pb-2 text-sm font-semibold text-primary';
-const btnPrimaryClass =
-  'rounded-lg bg-primary px-6 py-3 font-semibold text-on-primary transition hover:bg-primary-hover hover:shadow-glow-primary disabled:cursor-not-allowed disabled:opacity-50';
-const btnSecondaryClass =
-  'rounded-lg border border-edge-strong px-6 py-3 font-semibold text-content transition hover:border-primary/60 hover:text-primary disabled:cursor-not-allowed disabled:opacity-50';
+  'mt-2 border-b border-brand-hairline pb-2 font-display text-sm font-bold uppercase tracking-wider text-brand-pink';
+const btnPrimaryClass = marketingButton('warm', 'lg');
+const btnSecondaryClass = marketingButton('outline', 'lg');
 
 // Paystack settlement bank codes for South Africa.
 const SA_BANKS = [
@@ -250,7 +267,9 @@ function Field({ label, optional, children }) {
       <label className={labelClass}>
         {label}
         {optional && (
-          <span className="ml-1 normal-case text-content-faint">(optional)</span>
+          <span className="ml-1 normal-case text-brand-hairline">
+            (optional)
+          </span>
         )}
       </label>
       {children}
@@ -274,7 +293,7 @@ function StepTabs({ currentStep, hasAccount, onStepClick }) {
             {index > 0 && (
               <div
                 className={`h-px flex-1 transition-colors ${
-                  index <= currentStep ? 'bg-primary/60' : 'bg-edge'
+                  index <= currentStep ? 'bg-brand-pink' : 'bg-brand-hairline'
                 }`}
               />
             )}
@@ -283,21 +302,21 @@ function StepTabs({ currentStep, hasAccount, onStepClick }) {
               data-testid={`step-tab-${s.id}`}
               onClick={() => clickable && onStepClick(index)}
               disabled={!clickable}
-              className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+              className={`flex items-center gap-2 rounded-full px-3 py-1.5 font-mono text-xs font-bold transition ${
                 isActive
-                  ? 'bg-primary/15 text-primary'
+                  ? 'text-brand-pink'
                   : isDone
-                    ? 'text-success'
-                    : 'text-content-faint'
-              } ${clickable ? 'cursor-pointer hover:bg-content/5' : 'cursor-default'}`}
+                    ? 'text-brand-green'
+                    : 'text-brand-hairline'
+              } ${clickable ? 'cursor-pointer hover:bg-black/5' : 'cursor-default'}`}
             >
               <span
                 className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[11px] ${
                   isActive
-                    ? 'border-primary bg-primary text-on-primary'
+                    ? 'border-transparent bg-brand-warm text-white'
                     : isDone
-                      ? 'border-success/60 bg-success/10'
-                      : 'border-edge-strong'
+                      ? 'border-brand-green/60 bg-brand-green/10'
+                      : 'border-brand-hairline'
                 }`}
               >
                 {isDone && !isActive ? (
@@ -487,18 +506,22 @@ function Register() {
         </Field>
       </div>
 
-      <div className="my-2 flex items-center gap-3 text-xs uppercase tracking-widest text-content-faint before:h-px before:flex-1 before:bg-edge after:h-px after:flex-1 after:bg-edge">
-        or
+      <div className="my-2">
+        <OrDivider />
       </div>
       <div className="flex justify-center">
-        <GoogleButton type="dark" onClick={handleGoogle} disabled={submitting} />
+        <GoogleButton
+          type="light"
+          onClick={handleGoogle}
+          disabled={submitting}
+        />
       </div>
     </div>
   );
 
   const renderOwnerStep = () => (
     <div className="flex flex-col gap-4">
-      <p className="text-sm text-content-muted">
+      <p className="font-mono text-sm text-brand-muted">
         Tell us about you as the person responsible for this business.
         We&apos;ll use these details if we need to contact you about your
         venue or payouts.
@@ -753,11 +776,11 @@ function Register() {
 
   const renderVerifyStep = () => (
     <div className="flex flex-col gap-4">
-      <p className="text-sm text-content-muted">
+      <p className="font-mono text-sm text-brand-muted">
         To keep BarHop exclusive to real venue owners, we verify your
         business bank account through Paystack, our secure South African
         payments partner. Your details for{' '}
-        <span className="font-semibold text-content">
+        <span className="font-display font-bold text-black">
           {form.registeredName || 'your business'}
         </span>{' '}
         are validated directly with your bank — this also enables payouts
@@ -792,7 +815,7 @@ function Register() {
           data-testid="account-number-input"
         />
       </Field>
-      <p className="text-xs text-content-faint">
+      <p className="font-mono text-xs text-brand-hairline">
         Your banking details are sent directly to Paystack and are never
         stored on BarHop servers.
       </p>
@@ -808,23 +831,32 @@ function Register() {
 
   if (completed) {
     return (
-      <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-surface px-4 py-12">
-        <div className="pointer-events-none absolute inset-x-0 top-0 hero-glow h-80" />
-        <div
-          className="relative w-full max-w-md rounded-2xl border border-edge bg-surface-overlay p-8 text-center"
-          data-testid="registration-complete"
-        >
-          <ShieldCheckIcon className="mx-auto h-12 w-12 text-success" />
-          <h1 className="mt-4 text-2xl font-bold text-content">
-            Business Verified
-          </h1>
-          <p className="mt-2 text-sm text-content-muted">
-            Your bank account was confirmed through Paystack. Taking you to
-            your dashboard…
-          </p>
-          <div className="mx-auto mt-6 h-8 w-8 animate-spin rounded-full border-2 border-edge border-t-primary" />
-        </div>
-      </div>
+      <MarketingPage nav={<MarketingNav links={[]} cta={null} />}>
+        <MarketingSection tone="dark" className="flex justify-center">
+          <OrbitRings rings={AUTH_RINGS.wide} />
+          <div className="relative w-full max-w-md">
+            <SlabCard
+              layers={CARD_LAYERS.cool}
+              className="text-center"
+              data-testid="registration-complete"
+            >
+              <ShieldCheckIcon className="mx-auto h-12 w-12 text-brand-green" />
+              <h1 className="mt-4 font-display text-2xl font-bold text-black">
+                Business Verified
+              </h1>
+              <p className="mt-2 font-mono text-sm text-brand-muted">
+                Your bank account was confirmed through Paystack. Taking you to
+                your dashboard…
+              </p>
+              <div
+                role="status"
+                aria-label="Loading"
+                className="mx-auto mt-6 h-8 w-8 animate-spin rounded-full border-2 border-brand-hairline border-t-brand-pink"
+              />
+            </SlabCard>
+          </div>
+        </MarketingSection>
+      </MarketingPage>
     );
   }
 
@@ -832,114 +864,129 @@ function Register() {
   const canGoBack = step > (currentUser || createdUid ? 1 : 0);
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-surface px-4 py-12">
-      <div className="pointer-events-none absolute inset-x-0 top-0 hero-glow h-80" />
+    <MarketingPage
+      // Already on /register, so the nav drops its Get Started CTA.
+      nav={<MarketingNav links={[{ label: 'Login', to: '/login' }]} cta={null} />}
+    >
+      <MarketingSection tone="dark">
+        <OrbitRings rings={AUTH_RINGS.wide} />
 
-      <div className="relative w-full max-w-2xl rounded-2xl border border-edge bg-surface-overlay p-8">
-        <Link to="/" className="font-display text-3xl tracking-wider text-content">
-          BarHop
-        </Link>
-        <h1 className="mt-4 text-2xl font-bold text-content">
-          Join as a Venue Owner
-        </h1>
-        <p className="mt-1 text-sm text-content-muted">
-          BarHop is exclusive to verified business owners — set up your
-          account and verify your venue in four quick steps.
-        </p>
-
-        {currentUser && (
-          <div className="mt-4 flex items-center justify-between rounded-lg border border-edge bg-surface-raised px-4 py-3 text-sm text-content-muted">
-            <span>
-              Completing registration as{' '}
-              <span className="font-semibold text-content">
-                {currentUser.email}
-              </span>
-            </span>
-            <button
-              type="button"
-              onClick={handleSignOut}
-              className="font-semibold text-primary transition hover:text-primary-hover"
-            >
-              Sign out
-            </button>
-          </div>
-        )}
-
-        <StepTabs
-          currentStep={step}
-          hasAccount={hasAccount}
-          onStepClick={goTo}
-        />
-
-        {error && (
-          <div
-            className="mt-4 rounded-lg border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger"
-            data-testid="register-error"
-          >
-            {error}
-          </div>
-        )}
-
-        <form
-          className="mt-6"
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (isVerifyStep) handleVerify();
-            else handleNext();
-          }}
-        >
-          <div
-            key={step}
-            data-testid={`step-panel-${STEPS[step].id}`}
-            className={
-              direction === 'back' ? 'animate-step-back' : 'animate-step-fwd'
+        <div className="relative mx-auto flex max-w-3xl flex-col gap-12 sm:gap-16">
+          <SectionCopy
+            as="h1"
+            tone="dark"
+            variant="cool"
+            center
+            heading={
+              <>
+                Join as a
+                <br />
+                <GradientLine variant="cool">Venue Owner</GradientLine>
+              </>
             }
           >
-            {stepRenderers[step]()}
-          </div>
+            BarHop is exclusive to verified business owners — set up your
+            account and verify your venue in four quick steps.
+          </SectionCopy>
 
-          <div className="mt-8 flex items-center justify-between gap-4">
-            {canGoBack ? (
-              <button
-                type="button"
-                className={btnSecondaryClass}
-                onClick={handleBack}
-                disabled={submitting}
-                data-testid="back-button"
-              >
-                Back
-              </button>
-            ) : (
-              <span />
+          <SlabCard layers={CARD_LAYERS.cool}>
+            {currentUser && (
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-brand-hairline bg-[#F0F0F0] px-4 py-3 font-mono text-sm text-brand-muted">
+                <span>
+                  Completing registration as{' '}
+                  <span className="font-display font-bold text-black">
+                    {currentUser.email}
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className="font-display font-bold text-brand-pink hover:underline"
+                >
+                  Sign out
+                </button>
+              </div>
             )}
-            <button
-              type="submit"
-              className={btnPrimaryClass}
-              disabled={submitting}
-              data-testid={isVerifyStep ? 'verify-button' : 'next-button'}
-            >
-              {isVerifyStep
-                ? submitting
-                  ? 'Validating with your bank…'
-                  : 'Verify & Finish'
-                : 'Continue'}
-            </button>
-          </div>
-        </form>
 
-        {!currentUser && (
-          <p className="mt-6 text-center text-sm text-content-muted">
-            Already have an account?{' '}
-            <Link
-              to="/login"
-              className="font-semibold text-primary transition hover:text-primary-hover"
+            <StepTabs
+              currentStep={step}
+              hasAccount={hasAccount}
+              onStepClick={goTo}
+            />
+
+            {error && (
+              <div
+                className="mt-4 rounded-lg border border-brand-pink/50 bg-brand-pink/10 px-4 py-3 font-mono text-sm text-brand-pink"
+                data-testid="register-error"
+              >
+                {error}
+              </div>
+            )}
+
+            <form
+              className="mt-6"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (isVerifyStep) handleVerify();
+                else handleNext();
+              }}
             >
-              Sign in
-            </Link>
-          </p>
-        )}
-      </div>
-    </div>
+              <div
+                key={step}
+                data-testid={`step-panel-${STEPS[step].id}`}
+                className={
+                  direction === 'back'
+                    ? 'animate-step-back'
+                    : 'animate-step-fwd'
+                }
+              >
+                {stepRenderers[step]()}
+              </div>
+
+              <div className="mt-8 flex items-center justify-between gap-4">
+                {canGoBack ? (
+                  <button
+                    type="button"
+                    className={btnSecondaryClass}
+                    onClick={handleBack}
+                    disabled={submitting}
+                    data-testid="back-button"
+                  >
+                    Back
+                  </button>
+                ) : (
+                  <span />
+                )}
+                <button
+                  type="submit"
+                  className={btnPrimaryClass}
+                  disabled={submitting}
+                  data-testid={isVerifyStep ? 'verify-button' : 'next-button'}
+                >
+                  {isVerifyStep
+                    ? submitting
+                      ? 'Validating with your bank…'
+                      : 'Verify & Finish'
+                    : 'Continue'}
+                </button>
+              </div>
+            </form>
+
+            {!currentUser && (
+              <p className="mt-6 text-center font-mono text-sm text-brand-muted">
+                Already have an account?{' '}
+                <Link
+                  to="/login"
+                  className="font-display font-bold text-brand-pink hover:underline"
+                >
+                  Sign in
+                </Link>
+              </p>
+            )}
+          </SlabCard>
+        </div>
+      </MarketingSection>
+    </MarketingPage>
   );
 }
 

@@ -16,27 +16,22 @@ import {
 } from '../firebase/analyticsService';
 import VenueCardPreview from '../components/VenueCardPreview';
 import { toPreviewData } from '../data/venuePreview';
-import EmptyState from '../components/ui/EmptyState';
-import { Spinner } from '../components/ui/Spinner';
-import { buttonClasses } from '../components/ui/Button';
-import { SegmentedRule, OrbitRings, RING } from '../components/ui/Decor';
+import {
+  BrandEmptyState,
+  BrandSpinner,
+  Dropdown,
+  PageShell,
+  PANEL,
+  PANEL_HOVER,
+  PanelTitle,
+  RING_SETS,
+  SegmentedRule,
+  brandButton,
+} from '../components/ui/Brand';
 
-// Marketing Overview. Fixed dark palette (#262626 canvas, white text)
-// taken from the Landing page's dark bands — this page does not follow
-// the light/dark theme toggle.
-
-const PANEL =
-  'rounded-2xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur-sm';
-
-// Decorative background circles, drawn with the shared gradient-stroke
-// technique. White at the top-left, falling away into the canvas.
-const DECOR_RINGS = [
-  `${RING} -left-32 top-8 h-[420px] w-[420px] bg-brand-fade`,
-  `${RING} left-[22%] -top-16 h-[480px] w-[480px] bg-brand-fade`,
-  `${RING} right-[6%] -top-24 h-[520px] w-[520px] bg-brand-fade`,
-  `${RING} right-[18%] top-64 h-[440px] w-[440px] bg-brand-fade`,
-  `${RING} -right-16 top-[30rem] h-[400px] w-[400px] bg-brand-fade`,
-];
+// Marketing Overview — the reference implementation of the dashboard's
+// fixed dark palette. Every other authenticated page follows this page's
+// patterns via components/ui/Brand.js.
 
 const ANALYTICS_WINDOWS = [
   { value: 7, label: 'Last 7 days' },
@@ -44,47 +39,18 @@ const ANALYTICS_WINDOWS = [
   { value: 90, label: 'Last 90 days' },
 ];
 
-// Alternating bar ramps, matching the comp. Literal strings so Tailwind
+// Alternating bar ramps, matching the comp. Horizontal bars, so the ramp
+// runs left→right along the bar's length. Literal strings so Tailwind
 // keeps them.
 const BAR_RAMPS = [
-  'bg-gradient-to-b from-brand-orange to-brand-pink',
-  'bg-gradient-to-b from-brand-green to-brand-blue',
+  'bg-gradient-to-r from-brand-orange to-brand-pink',
+  'bg-gradient-to-r from-brand-green to-brand-blue',
 ];
 
 // --- Sub-components ---
 
-// Outlined dropdown matching the comp. A native <select> under a styled
-// shell: keyboard and screen-reader support for free, and no outside-click
-// handling to get wrong.
-const Dropdown = ({ label, value, onChange, options }) => (
-  <label className="relative inline-flex h-11 min-w-[10rem] items-center rounded border border-white/40 px-4 font-mono text-sm text-white transition-colors focus-within:border-brand-pink hover:border-white">
-    <span className="pointer-events-none flex-1 truncate">{label}</span>
-    <svg
-      viewBox="0 0 20 20"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      aria-hidden="true"
-      className="pointer-events-none ml-3 h-4 w-4 shrink-0"
-    >
-      <path d="M5 7.5 10 12.5 15 7.5" strokeLinecap="round" />
-    </svg>
-    <select
-      value={value}
-      onChange={onChange}
-      className="absolute inset-0 cursor-pointer opacity-0"
-    >
-      {options.map((option) => (
-        <option key={option.value} value={option.value}>
-          {option.label}
-        </option>
-      ))}
-    </select>
-  </label>
-);
-
 const MetricCard = ({ title, value, trend, positive }) => (
-  <div className={`${PANEL} transition-colors hover:border-white/25`}>
+  <div className={`${PANEL} ${PANEL_HOVER}`}>
     <h3 className="font-mono text-sm text-white/60">{title}</h3>
     <p className="mt-3 font-mono text-4xl font-bold leading-none text-white">
       {value}
@@ -107,53 +73,70 @@ const MetricCard = ({ title, value, trend, positive }) => (
   </div>
 );
 
+// Horizontal bar chart. The two axis titles sit outside the plot area and
+// are aligned to it rather than to the whole card: the category title runs
+// up the left edge, the value title is centred under the bar track only.
+//
+// Geometry: the day labels occupy a fixed `w-14` gutter so the value axis
+// can be drawn as one continuous rule at `left-14` — a per-row border
+// would break into segments at every row gap. The track is a flex child,
+// so a bar's `width: %` is a percentage of the plot area, and the count
+// label lives outside the track and never steals width from it.
 const SwipeActivityChart = ({ weeklyData, maxSwipes, days }) => (
   <div className={`${PANEL} flex flex-col`}>
-    <h2 className="font-display text-2xl font-bold text-white">
-      Swipe Activity
-    </h2>
-    <p className="mt-1 font-mono text-sm text-white/60">Over {days} days</p>
+    <PanelTitle title="Swipe Activity" subtitle={`Over ${days} days`} />
 
     {weeklyData.length > 0 ? (
       <div className="mt-8 flex flex-1 gap-3">
         <span className="self-center whitespace-nowrap font-mono text-xs text-white/60 [writing-mode:vertical-rl] rotate-180">
-          Number of Swipes
+          Day of the Week
         </span>
 
         <div className="flex flex-1 flex-col">
-          <div className="flex h-56 items-end gap-4 border-b border-l border-white/30 px-3 pb-px">
+          <div className="relative flex flex-1 flex-col justify-center gap-3 border-b border-white/30 pb-3">
+            <span
+              aria-hidden="true"
+              className="absolute bottom-0 left-14 top-0 w-px bg-white/30"
+            />
+
             {weeklyData.map((log, index) => {
               const totalSwipes =
                 (log.swipedRight || 0) + (log.swipedLeft || 0);
-              const heightPct = Math.max((totalSwipes / maxSwipes) * 100, 4);
+              const widthPct = Math.max((totalSwipes / maxSwipes) * 100, 2);
               const dayLabel = log.date.toLocaleDateString('en-US', {
                 weekday: 'short',
               });
 
               return (
-                <div
-                  key={log.id || index}
-                  className="flex h-full flex-1 flex-col items-center justify-end gap-2"
-                >
-                  <span className="font-mono text-lg font-bold text-white">
-                    {totalSwipes}
-                  </span>
-                  <div
-                    className={`w-full max-w-[48px] rounded-t transition-all duration-500 ${
-                      BAR_RAMPS[index % BAR_RAMPS.length]
-                    }`}
-                    style={{ height: `${heightPct}%` }}
-                    title={`${dayLabel}: ${totalSwipes} swipes`}
-                  />
-                  <span className="font-mono text-xs text-white/60">
+                <div key={log.id || index} className="flex items-center">
+                  <span className="w-14 shrink-0 pr-3 text-right font-mono text-xs text-white/60">
                     {dayLabel}
                   </span>
+                  {/* pl-px only: bars must originate *on* the value axis. */}
+                  <div className="flex flex-1 items-center gap-3 pl-px">
+                    <div className="flex-1">
+                      <div
+                        className={`h-7 rounded-r transition-all duration-500 ${
+                          BAR_RAMPS[index % BAR_RAMPS.length]
+                        }`}
+                        style={{ width: `${widthPct}%` }}
+                        title={`${dayLabel}: ${totalSwipes} swipes`}
+                      />
+                    </div>
+                    <span className="w-10 shrink-0 text-right font-mono text-sm font-bold text-white">
+                      {totalSwipes}
+                    </span>
+                  </div>
                 </div>
               );
             })}
           </div>
-          <p className="mt-3 text-center font-mono text-xs text-white/60">
-            Day of the Week
+
+          {/* Padded to the track's own bounds (the w-14 label gutter on the
+              left, the w-10 count column plus its gap on the right) so
+              "centred" means centred under the bars, not under the row. */}
+          <p className="mt-3 pl-14 pr-[3.25rem] text-center font-mono text-xs text-white/60">
+            Number of Swipes
           </p>
         </div>
       </div>
@@ -198,12 +181,10 @@ const CardChecklist = ({ venue }) => {
 
   return (
     <div className={`${PANEL} flex flex-col`}>
-      <h2 className="font-display text-2xl font-bold text-white">
-        Card Checklist
-      </h2>
-      <p className="mt-1 font-mono text-sm text-white/60">
-        {doneCount} of {items.length} complete
-      </p>
+      <PanelTitle
+        title="Card Checklist"
+        subtitle={`${doneCount} of ${items.length} complete`}
+      />
 
       <ul className="mt-6 flex-1 space-y-3">
         {items.map((item) => (
@@ -232,7 +213,7 @@ const CardChecklist = ({ venue }) => {
       {doneCount < items.length && (
         <Link
           to={`/venue/edit/${venue.id}`}
-          className="mt-6 rounded-lg bg-brand-warm px-5 py-2.5 text-center font-display text-sm font-bold text-white transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-pink focus-visible:ring-offset-2 focus-visible:ring-offset-brand-ink"
+          className={brandButton('primary', 'md', 'mt-6')}
         >
           Finish your card
         </Link>
@@ -243,12 +224,10 @@ const CardChecklist = ({ venue }) => {
 
 const CustomerView = ({ venue }) => (
   <div className={`${PANEL} flex flex-col`}>
-    <h2 className="font-display text-2xl font-bold text-white">
-      Active Customer View
-    </h2>
-    <p className="mt-1 font-mono text-sm text-white/60">
-      Exactly how your venue looks when swiping
-    </p>
+    <PanelTitle
+      title="Active Customer View"
+      subtitle="Exactly how your venue looks when swiping"
+    />
     <div className="mt-6 flex justify-center">
       <VenueCardPreview venueData={toPreviewData(venue)} />
     </div>
@@ -300,28 +279,31 @@ function Dashboard() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen flex-1 flex-col items-center justify-center gap-4 bg-brand-ink p-12">
-        <Spinner />
+      <div className="flex min-h-screen flex-1 flex-col items-center justify-center gap-4 bg-brand-ink p-12">
+        <BrandSpinner />
         <p className="font-mono text-sm text-white/70">Loading dashboard...</p>
-      </main>
+      </div>
     );
   }
 
   if (venues.length === 0) {
     return (
-      <main className="flex min-h-screen flex-1 items-center justify-center bg-brand-ink p-12">
-        <EmptyState
+      <PageShell
+        rings={RING_SETS.column}
+        width="max-w-2xl"
+        className="flex flex-col justify-center"
+      >
+        <BrandEmptyState
           icon={FireIcon}
           title="No Venue Card Created"
           description="Build your Tinder-style custom venue card to start getting discovered by local groups."
-          className="max-w-md"
           action={
-            <Link to="/venue/create" className={buttonClasses('primary')}>
+            <Link to="/venue/create" className={brandButton('primary', 'lg')}>
               + Create Venue Card
             </Link>
           }
         />
-      </main>
+      </PageShell>
     );
   }
 
@@ -342,89 +324,87 @@ function Dashboard() {
   );
 
   return (
-    <main className="relative min-h-screen flex-1 overflow-hidden bg-brand-ink px-6 py-10 text-white lg:px-12">
-      <OrbitRings rings={DECOR_RINGS} className="opacity-30" />
+    <PageShell rings={RING_SETS.overview}>
+      {/* Header */}
+      <header className="flex flex-col gap-6">
+        <h1 className="font-mono text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
+          {activeVenue.name}
+        </h1>
 
-      <div className="relative mx-auto flex max-w-[1600px] flex-col gap-8">
-        {/* Header */}
-        <header className="flex flex-col gap-6">
-          <h1 className="font-mono text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
-            {activeVenue.name}
-          </h1>
-
+        {/* The published pill carries the warm ramp itself, so it reads as
+            a status *badge* rather than one more outlined chip. */}
+        <span
+          className={`inline-flex w-fit items-center gap-2.5 rounded-full px-5 py-2 font-mono text-sm font-bold text-white ${
+            activeVenue.published ? 'bg-brand-warm' : 'bg-white/10'
+          }`}
+        >
           <span
-            className={`inline-flex w-fit items-center gap-2.5 rounded-full px-5 py-2 font-mono text-sm font-bold text-white ${
-              activeVenue.published ? 'bg-brand-warm' : 'bg-white/10'
+            className={`h-2.5 w-2.5 rounded-full ${
+              activeVenue.published ? 'bg-brand-green' : 'bg-white/50'
             }`}
-          >
-            <span
-              className={`h-2.5 w-2.5 rounded-full ${
-                activeVenue.published ? 'bg-brand-green' : 'bg-white/50'
-              }`}
-            />
-            {activeVenue.published ? 'Published' : 'Draft Mode'}
-          </span>
-
-          <SegmentedRule variant="warm" />
-
-          <div className="flex flex-wrap gap-4">
-            <Dropdown
-              label="View Card"
-              value={activeVenue.id}
-              onChange={(e) => setSelectedVenueId(e.target.value)}
-              options={venues.map((v) => ({ value: v.id, label: v.name }))}
-            />
-            <Dropdown
-              label="Filter"
-              value={days}
-              onChange={(e) => setDays(Number(e.target.value))}
-              options={ANALYTICS_WINDOWS}
-            />
-          </div>
-        </header>
-
-        {/* Top-Level KPIs (Live) */}
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-6">
-          <MetricCard
-            title="Right Swipes (Likes)"
-            value={summary.swipedRight.toLocaleString()}
-            trend={`${summary.impressions > 0 ? likeRate : 0}% Conversion`}
-            positive={true}
           />
-          <MetricCard
-            title="Left Swipes (Passes)"
-            value={summary.swipedLeft.toLocaleString()}
-            trend="Active Discovery"
-            positive={false}
-          />
-          <MetricCard
-            title="Profile Expansions"
-            value={summary.clickThroughs.toLocaleString()}
-            trend="High intent views"
-            positive={true}
-          />
-          <MetricCard
-            title="Group Matches"
-            value={summary.matchRate.toLocaleString()}
-            trend={`${summary.impressions > 0 ? matchRate : 0}% of total views`}
-            positive={true}
-          />
-        </div>
+          {activeVenue.published ? 'Published' : 'Draft Mode'}
+        </span>
 
         <SegmentedRule variant="warm" />
 
-        {/* Analytics panels */}
-        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.6fr_1fr_1fr]">
-          <SwipeActivityChart
-            weeklyData={weeklyData}
-            maxSwipes={maxSwipes}
-            days={days}
+        <div className="flex flex-wrap gap-4">
+          <Dropdown
+            label="View Card"
+            value={activeVenue.id}
+            onChange={(e) => setSelectedVenueId(e.target.value)}
+            options={venues.map((v) => ({ value: v.id, label: v.name }))}
           />
-          <CardChecklist venue={activeVenue} />
-          <CustomerView venue={activeVenue} />
+          <Dropdown
+            label="Filter"
+            value={days}
+            onChange={(e) => setDays(Number(e.target.value))}
+            options={ANALYTICS_WINDOWS}
+          />
         </div>
+      </header>
+
+      {/* Top-Level KPIs (Live) */}
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-6">
+        <MetricCard
+          title="Right Swipes (Likes)"
+          value={summary.swipedRight.toLocaleString()}
+          trend={`${summary.impressions > 0 ? likeRate : 0}% Conversion`}
+          positive={true}
+        />
+        <MetricCard
+          title="Left Swipes (Passes)"
+          value={summary.swipedLeft.toLocaleString()}
+          trend="Active Discovery"
+          positive={false}
+        />
+        <MetricCard
+          title="Profile Expansions"
+          value={summary.clickThroughs.toLocaleString()}
+          trend="High intent views"
+          positive={true}
+        />
+        <MetricCard
+          title="Group Matches"
+          value={summary.matchRate.toLocaleString()}
+          trend={`${summary.impressions > 0 ? matchRate : 0}% of total views`}
+          positive={true}
+        />
       </div>
-    </main>
+
+      <SegmentedRule variant="warm" />
+
+      {/* Analytics panels */}
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.6fr_1fr_1fr]">
+        <SwipeActivityChart
+          weeklyData={weeklyData}
+          maxSwipes={maxSwipes}
+          days={days}
+        />
+        <CardChecklist venue={activeVenue} />
+        <CustomerView venue={activeVenue} />
+      </div>
+    </PageShell>
   );
 }
 

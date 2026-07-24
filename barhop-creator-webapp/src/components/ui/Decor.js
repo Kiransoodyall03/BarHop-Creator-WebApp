@@ -1,15 +1,15 @@
 import React from 'react';
 
-// Shared brand decoration for the fixed-palette surfaces (the public
-// Landing page and the authenticated dashboard). Everything here is a
-// literal brand value from tailwind.config.js — these surfaces render
-// identically regardless of the light/dark theme toggle.
+// Shared brand decoration for the fixed-palette surfaces — which is now
+// every surface in the app. Everything here is a literal brand value from
+// tailwind.config.js.
 //
-// NOTE: `src/pages/Landing.js` carries its own local copies of
-// SegmentedRule, OrbitRings/RING and Logo. Landing was deliberately
-// frozen when the dashboard was rebuilt, so the duplication is known and
-// intentional. If you change the geometry or the mask technique here,
-// change it there too — or fold Landing onto this module in one go.
+// Two kits build on this module: `ui/Marketing.js` (the public Landing,
+// Login and Register pages — white chrome over alternating dark/light
+// bands) and `ui/Brand.js` (the authenticated dashboard — one dark
+// canvas). Landing's former local copies of SegmentedRule, OrbitRings /
+// RING and Logo were folded back onto this module, so this is the single
+// definition of the ring geometry and the mask technique.
 
 // --- Segmented gradient rule -------------------------------------------------
 
@@ -55,11 +55,14 @@ export const RING =
 // Each breakpoint needs its own `group-hover` scale when `hover` is on: a
 // bare `group-hover:scale-*` outranks `sm:`/`lg:` on specificity and
 // would otherwise snap the rings back to phone size on hover at desktop.
-export function OrbitRings({ rings, className = '' }) {
+const RING_HOVER =
+  'transition-transform duration-500 motion-reduce:transition-none group-hover:scale-[0.56] sm:group-hover:scale-[0.84] lg:group-hover:scale-110';
+
+export function OrbitRings({ rings, className = '', hover = false }) {
   return (
     <div
       aria-hidden="true"
-      className={`pointer-events-none absolute inset-0 scale-[0.5] sm:scale-75 lg:scale-100 ${className}`}
+      className={`pointer-events-none absolute inset-0 scale-[0.5] sm:scale-75 lg:scale-100 ${hover ? RING_HOVER : ''} ${className}`}
     >
       {rings.map((ring, i) => (
         // eslint-disable-next-line react/no-array-index-key -- static list, never reordered

@@ -2,9 +2,13 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useError } from '../context/ErrorContext';
 import { updateBusinessProfile } from '../firebase/userService';
-import Card from './ui/Card';
-import Button from './ui/Button';
-import { Label, Input } from './ui/Field';
+import {
+  BrandButton,
+  BrandInput,
+  BrandLabel,
+  PANEL,
+  PanelTitle,
+} from './ui/Brand';
 
 // SARS VAT numbers are exactly 10 digits and always start with '4'.
 const VAT_REGEX = /^4\d{9}$/;
@@ -24,21 +28,24 @@ function Field({
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <Label className="mb-0">{label}</Label>
-      <Input
+      <BrandLabel>{label}</BrandLabel>
+      <BrandInput
         type={type}
         data-testid={testId}
-        className={`text-sm ${error ? 'border-danger/60' : ''}`}
+        className={error ? 'border-brand-pink' : ''}
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
       />
       {error ? (
-        <p data-testid={`${testId}-error`} className="text-xs text-danger">
+        <p
+          data-testid={`${testId}-error`}
+          className="font-mono text-xs text-brand-pink"
+        >
           {error}
         </p>
       ) : (
-        help && <p className="text-xs text-content-faint">{help}</p>
+        help && <p className="font-mono text-xs text-white/45">{help}</p>
       )}
     </div>
   );
@@ -137,13 +144,11 @@ function BusinessProfile() {
       onSubmit={handleSubmit}
       className="flex flex-col gap-6"
     >
-      <Card as="section">
-        <h3 className="text-lg font-semibold text-content">
-          Public Venue Information
-        </h3>
-        <p className="mt-1 text-sm text-content-muted">
-          How your business presents to guests and on invoices.
-        </p>
+      <section className={PANEL}>
+        <PanelTitle
+          title="Public Venue Information"
+          subtitle="How your business presents to guests and on invoices."
+        />
         <div className="mt-6 grid gap-5 sm:grid-cols-2">
           <Field
             label="Trading Name"
@@ -182,16 +187,13 @@ function BusinessProfile() {
             placeholder="@neonnights"
           />
         </div>
-      </Card>
+      </section>
 
-      <Card as="section">
-        <h3 className="text-lg font-semibold text-content">
-          Corporate &amp; Financial Identity (FICA)
-        </h3>
-        <p className="mt-1 text-sm text-content-muted">
-          Statutory identity used for tax invoices, FICA verification, and
-          POPIA/PAIA compliance.
-        </p>
+      <section className={PANEL}>
+        <PanelTitle
+          title="Corporate & Financial Identity (FICA)"
+          subtitle="Statutory identity used for tax invoices, FICA verification, and POPIA/PAIA compliance."
+        />
         <div className="mt-6 grid gap-5 sm:grid-cols-2">
           <Field
             label="Registered Legal Name"
@@ -222,11 +224,11 @@ function BusinessProfile() {
           />
         </div>
 
-        <div className="mt-8 border-t border-edge pt-6">
-          <h4 className="text-sm font-semibold text-content">
+        <div className="mt-8 border-t border-white/10 pt-6">
+          <h3 className="font-display text-base font-bold text-white">
             Information Officer (POPIA / PAIA)
-          </h4>
-          <p className="mt-1 text-xs text-content-muted">
+          </h3>
+          <p className="mt-1 font-mono text-xs text-white/60">
             An Information Officer is required by law under the POPIA Act to
             handle data subject requests on behalf of your business.
           </p>
@@ -257,10 +259,10 @@ function BusinessProfile() {
             />
           </div>
         </div>
-      </Card>
+      </section>
 
       <div className="flex items-center justify-end gap-4">
-        <Button
+        <BrandButton
           type="submit"
           size="lg"
           data-testid="bp-save"
@@ -268,7 +270,7 @@ function BusinessProfile() {
           className="px-8"
         >
           {saving ? 'Saving…' : 'Save Business Profile'}
-        </Button>
+        </BrandButton>
       </div>
     </form>
   );
